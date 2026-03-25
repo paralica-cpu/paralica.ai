@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paralica Aviation — Briefings Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0f1e;
+      color: #e8eaf0;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+    .container { max-width: 680px; margin: 0 auto; }
+    .header {
+      text-align: center;
+      padding: 32px 24px 24px;
+      background: linear-gradient(135deg, #0d1b2a 0%, #1a2744 100%);
+      border-radius: 20px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .header-icon { font-size: 32px; margin-bottom: 8px; }
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .header p {
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+    .briefing-list { display: flex; flex-direction: column; gap: 12px; }
+    .briefing-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: #0d1b2a;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 16px 20px;
+      text-decoration: none;
+      color: #e8eaf0;
+      transition: all 0.2s;
+    }
+    .briefing-card:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(96,165,250,0.3);
+      transform: translateY(-1px);
+    }
+    .route-badge {
+      background: rgba(59,130,246,0.12);
+      border: 1px solid rgba(59,130,246,0.25);
+      border-radius: 10px;
+      padding: 8px 12px;
+      text-align: center;
+      min-width: 110px;
+    }
+    .route-badge .airports {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #60a5fa;
+      letter-spacing: 1px;
+    }
+    .route-badge .arrow {
+      font-size: 0.7rem;
+      color: #3b82f6;
+    }
+    .briefing-info { flex: 1; }
+    .briefing-date {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 2px;
+    }
+    .briefing-time {
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+    .status {
+      font-size: 0.7rem;
+      font-weight: 600;
+      border-radius: 6px;
+      padding: 4px 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .status-go { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+    .status-caution { background: rgba(234,179,8,0.15); color: #fde68a; border: 1px solid rgba(234,179,8,0.3); }
+    .status-nogo { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: #374151;
+      font-size: 0.9rem;
+    }
+    .footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.7rem;
+      color: #1e293b;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="header-icon">✈️🔮</div>
+    <h1>Flight Briefings</h1>
+    <p>Generated weather briefings — sorted by date</p>
+  </div>
+  <div class="briefing-list" id="briefings"></div>
+  <div class="footer">paralica.ai/aviation</div>
+</div>
+<script>
+const briefings = [
+  { hash: "f2ec1932b917434c", dep: "KASE", dest: "KCRQ", date: "2026-03-28", time: "9:00 AM MDT", status: "GO" },
+  { hash: "61c4908730091319", dep: "KSBA", dest: "KASE", date: "2026-03-25", time: "2:30 PM PDT", status: "GO" }
+];
+
+const container = document.getElementById('briefings');
+if (briefings.length === 0) {
+  container.innerHTML = '<div class="empty">No briefings yet</div>';
+} else {
+  briefings.forEach(b => {
+    const statusClass = b.status === 'GO' ? 'status-go' : b.status === 'CAUTION' ? 'status-caution' : 'status-nogo';
+    const dateObj = new Date(b.date + 'T12:00:00');
+    const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    container.innerHTML += `
+      <a href="/briefings/${b.hash}" class="briefing-card">
+        <div class="route-badge">
+          <div class="airports">${b.dep} <span class="arrow">→</span> ${b.dest}</div>
+        </div>
+        <div class="briefing-info">
+          <div class="briefing-date">${dateStr}</div>
+          <div class="briefing-time">Dep ${b.time}</div>
+        </div>
+        <span class="status ${statusClass}">${b.status}</span>
+      </a>`;
+  });
+}
+</script>
+</body>
+</html>
