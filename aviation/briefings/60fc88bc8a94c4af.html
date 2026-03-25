@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flight Weather Briefing · KSBA → KMIA</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0f1e;
+      color: #e8eaf0;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 40px 24px 32px;
+      background: linear-gradient(135deg, #0d1b2a 0%, #1a2744 100%);
+      border-radius: 20px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.07);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: -60px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; right: -40px;
+      width: 160px; height: 160px;
+      background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .plane-icon { font-size: 36px; margin-bottom: 12px; display: block; }
+
+    .route {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .route span { color: #60a5fa; font-size: 22px; margin: 0 10px; }
+
+    .flight-meta {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .meta-pill {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 13px;
+      color: #a0aec0;
+    }
+
+    .meta-pill strong { color: #e2e8f0; }
+
+    /* Status banner */
+    .status-banner {
+      border-radius: 14px;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .status-banner.caution {
+      background: linear-gradient(135deg, #78350f, #92400e);
+      border: 1px solid #f59e0b;
+    }
+
+    .banner-icon { font-size: 28px; }
+
+    .banner-text strong {
+      display: block;
+      font-size: 17px;
+      font-weight: 700;
+      color: #fef3c7;
+      margin-bottom: 4px;
+    }
+
+    .banner-text p { font-size: 13px; color: #fde68a; line-height: 1.5; }
+
+    /* Cards */
+    .card {
+      background: #0d1b2a;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #60a5fa;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title span { font-size: 16px; }
+
+    /* Airport row */
+    .airport-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .wx-item { }
+
+    .wx-label {
+      font-size: 11px;
+      color: #718096;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 4px;
+    }
+
+    .wx-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .wx-value.warning { color: #f59e0b; }
+    .wx-value.danger { color: #ef4444; }
+    .wx-value.good { color: #10b981; }
+
+    .wx-sub { font-size: 12px; color: #718096; margin-top: 2px; }
+
+    /* Badges */
+    .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-ifr { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+    .badge-vfr { background: rgba(16,185,129,0.2); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+    .badge-mvfr { background: rgba(245,158,11,0.2); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+    .badge-warn { background: rgba(245,158,11,0.2); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+    .badge-sigmet { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+    .badge-ok { background: rgba(16,185,129,0.2); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+
+    /* Timeline */
+    .timeline { list-style: none; }
+
+    .timeline-item {
+      display: flex;
+      gap: 16px;
+      padding-bottom: 20px;
+      position: relative;
+    }
+
+    .timeline-item:last-child { padding-bottom: 0; }
+
+    .timeline-item:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 24px;
+      bottom: 0;
+      width: 2px;
+      background: rgba(255,255,255,0.06);
+    }
+
+    .tl-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #1a2744;
+      border: 2px solid #334155;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      margin-top: 1px;
+    }
+
+    .tl-dot.warn { border-color: #f59e0b; }
+
+    .tl-content strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 4px;
+    }
+
+    .tl-content p { font-size: 13px; color: #718096; line-height: 1.5; }
+    .tl-content .tl-warn { color: #f59e0b; }
+    .tl-content .tl-ok { color: #10b981; }
+
+    /* Comfort */
+    .comfort-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+
+    .comfort-dots { display: flex; gap: 5px; }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .dot-fill { background: #f59e0b; }
+    .dot-empty { background: #1e2d40; border: 1px solid #334155; }
+
+    .comfort-label { font-size: 14px; font-weight: 600; color: #fcd34d; }
+
+    .comfort-desc { font-size: 13px; color: #718096; line-height: 1.6; }
+
+    .phase { margin-top: 12px; }
+
+    .phase-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: #60a5fa;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 4px;
+    }
+
+    .phase-desc { font-size: 13px; color: #94a3b8; line-height: 1.5; }
+
+    /* Divider */
+    .divider { height: 1px; background: rgba(255,255,255,0.05); margin: 16px 0; }
+
+    /* Raw data */
+    .raw-block {
+      background: #070d1a;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 12px;
+    }
+
+    .raw-block pre {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11px;
+      color: #64748b;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 24px;
+      color: #374151;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .footer a { color: #4b5563; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <span class="plane-icon">✈️</span>
+    <div class="route">KSBA <span>→</span> KMIA</div>
+    <div style="color:#94a3b8; font-size:14px; margin-top:4px;">Santa Barbara → Miami International</div>
+    <div class="flight-meta">
+      <div class="meta-pill"><strong>Depart:</strong> Wed May 25 · 19:00 PDT (02:00Z)</div>
+      <div class="meta-pill"><strong>Cruise:</strong> FL350</div>
+      <div class="meta-pill"><strong>Est. ETE:</strong> ~4.5 hrs</div>
+      <div class="meta-pill"><strong>ETA KMIA:</strong> ~00:30 PDT (07:30Z)</div>
+    </div>
+  </div>
+
+  <!-- Go/No-Go Banner -->
+  <div class="status-banner caution">
+    <div class="banner-icon">⚠️</div>
+    <div class="banner-text">
+      <strong>CAUTION — Convective Activity Near Miami</strong>
+      <p>Departure is IFR with low ceilings/fog at KSBA (clearing around departure time), but the major concern is active convective SIGMETs affecting the Florida coast and KMIA arrival area. Strong embedded TS tops above FL450 near destination. Expect possible delays or alternate holding.</p>
+    </div>
+  </div>
+
+  <!-- Departure Card: KSBA -->
+  <div class="card">
+    <div class="card-title"><span>🛫</span> Departure — KSBA Santa Barbara</div>
+    <div class="airport-grid">
+      <div class="wx-item">
+        <div class="wx-label">Ceiling</div>
+        <div class="wx-value warning">OVC008</div>
+        <div class="wx-sub">800 ft overcast (now)</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Visibility</div>
+        <div class="wx-value warning">4SM BR</div>
+        <div class="wx-sub">Mist reducing vis</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Wind</div>
+        <div class="wx-value">260° @ 8 KT</div>
+        <div class="wx-sub">Westerly, light</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Temp / Dew</div>
+        <div class="wx-value">17° / 14°C</div>
+        <div class="wx-sub">Altimeter 29.96</div>
+      </div>
+    </div>
+    <div class="badge-row">
+      <span class="badge badge-ifr">IFR</span>
+      <span class="badge badge-warn">LOW CEILINGS</span>
+      <span class="badge badge-warn">COASTAL FOG</span>
+    </div>
+    <div class="divider"></div>
+    <div class="wx-label" style="margin-bottom:8px;">TAF Forecast at 19:00 PDT (02:00Z)</div>
+    <p style="font-size:13px; color:#94a3b8; line-height:1.6;">By 23:00Z (4pm PDT) KSBA TAF calls for ceilings rising to SCT010 with visibility improving to 6+SM. By your 02:00Z departure, winds light and variable, visibility improving — conditions should be marginal VFR to low-IFR. Marine layer typically persists along SBA coast; instrument departure expected.</p>
+    <div class="raw-block">
+      <pre>METAR KSBA 252153Z 26008KT 4SM BR OVC008 17/14 A2996 RMK AO2 SLP146 T01670144
+
+TAF KSBA 252034Z 2521/2618 24008KT 4SM BR OVC007
+  FM252300 23006KT P6SM SCT010
+  FM260300 VRB03KT 5SM HZ BKN007
+  FM260700 06004KT 4SM BR OVC004
+  FM261000 VRB03KT 2SM BR OVC003</pre>
+    </div>
+  </div>
+
+  <!-- En Route Card -->
+  <div class="card">
+    <div class="card-title"><span>🗺️</span> En Route</div>
+    <ul class="timeline">
+      <li class="timeline-item">
+        <div class="tl-dot">🛫</div>
+        <div class="tl-content">
+          <strong>Climb — KSBA to FL350 (02:00–02:40Z)</strong>
+          <p>Instrument departure through low marine layer (ceilings 700–1000 ft). Expect IMC to ~FL100 over coastal California. Winds at 18,000 ft from 360°/light near SBA, becoming westerly aloft. Clear of cloud tops above FL120.</p>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <div class="tl-dot">✈️</div>
+        <div class="tl-content">
+          <strong>Cruise — Over AZ/NM/TX (02:40–05:00Z)</strong>
+          <p class="tl-ok">Smooth ride expected across the desert southwest. No significant weather. Winds aloft at FL350 from ~330–350° / 35–50 KT across Texas region (favorable tailwind component). Temps around -55°C to -60°C. Good ride — PIREPs from southern US corridor show smooth to light chop only.</p>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <div class="tl-dot warn">⚡</div>
+        <div class="tl-content">
+          <strong>Descent — Gulf Coast / Florida Approach (05:00–06:30Z)</strong>
+          <p class="tl-warn">⚠️ ACTIVE CONVECTIVE SIGMETs 29E and 30E cover the Florida coastal waters and interior. Embedded thunderstorms moving little, tops above FL450 (29E) and to FL340 (30E). Area extends from CRG–PBI–RSW–SRQ corridor. KMIA is inside or adjacent to affected area.</p>
+          <p style="margin-top:6px;">WST issuances expected through morning. Coordinate with dispatch for routing around active cells. Possible holding or divert to alternate (FLL, PBI, MCO) depending on cell movement at ETA.</p>
+        </div>
+      </li>
+    </ul>
+    <div class="divider"></div>
+    <div class="wx-label" style="margin-bottom:8px;">Winds Aloft Summary</div>
+    <p style="font-size:13px; color:#94a3b8; line-height:1.5;">SBA area @ FL340: 261°/44 KT | Texas region @ FL340: ~350°/49 KT | Southern FL: light and variable at cruise. Favorable routing for east-bound flight.</p>
+  </div>
+
+  <!-- Destination Card: KMIA -->
+  <div class="card">
+    <div class="card-title"><span>🛬</span> Destination — KMIA Miami International</div>
+    <div class="airport-grid">
+      <div class="wx-item">
+        <div class="wx-label">Ceiling</div>
+        <div class="wx-value good">FEW042</div>
+        <div class="wx-sub">Few at 4,200 ft (now)</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Visibility</div>
+        <div class="wx-value good">10SM</div>
+        <div class="wx-sub">Excellent</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Wind</div>
+        <div class="wx-value">130° @ 10G18 KT</div>
+        <div class="wx-sub">SE gusty</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Temp / Dew</div>
+        <div class="wx-value">26° / 15°C</div>
+        <div class="wx-sub">Altimeter 30.07</div>
+      </div>
+    </div>
+    <div class="badge-row">
+      <span class="badge badge-vfr">VFR NOW</span>
+      <span class="badge badge-sigmet">SIGMET ACTIVE NEARBY</span>
+      <span class="badge badge-warn">CB POTENTIAL AT ETA</span>
+    </div>
+    <div class="divider"></div>
+    <div class="wx-label" style="margin-bottom:8px;">TAF at ETA ~07:00–08:00Z</div>
+    <p style="font-size:13px; color:#94a3b8; line-height:1.6;">TAF calls for VRB04KT P6SM SKC by 02:00Z, transitioning to 08010KT SCT030 SCT050 by 15:00Z. The favorable TAF assumes convective cells move off or dissipate — but active SIGMETs suggest that's not guaranteed. KMIA ATC will vector around cells on approach if needed.</p>
+    <div class="raw-block">
+      <pre>METAR KMIA 252153Z 13010G18KT 10SM FEW042 FEW250 26/15 A3007 RMK AO2 SLP183 T02610150 $
+
+TAF KMIA 252053Z 2521/2624 12010KT P6SM FEW040
+  FM260200 VRB04KT P6SM SKC
+  FM261500 08010KT P6SM SCT030 SCT050</pre>
+    </div>
+  </div>
+
+  <!-- SIGMETs Card -->
+  <div class="card">
+    <div class="card-title"><span>⚡</span> Active SIGMETs</div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:14px; font-weight:600; color:#fca5a5; margin-bottom:6px;">Convective SIGMET 29E — Florida Coastal Waters</div>
+      <p style="font-size:13px; color:#94a3b8; line-height:1.5;">Valid until 2355Z. FL and coastal waters from 20SE ORL – 30NW PBI – 30SW RSW – 20W SRQ. Area of thunderstorms moving little. <strong style="color:#f87171;">Tops ABOVE FL450.</strong> WST outlook valid through 0355Z — further issuances expected.</p>
+    </div>
+    <div class="divider"></div>
+    <div>
+      <div style="font-size:14px; font-weight:600; color:#fca5a5; margin-bottom:6px;">Convective SIGMET 30E — Florida Coastal Waters</div>
+      <p style="font-size:13px; color:#94a3b8; line-height:1.5;">Valid until 2355Z. FL coastal waters from 20ENE CRG – 130ENE OMN – 210ENE PBI – 20ESE TRV. Embedded TS moving little. <strong style="color:#f87171;">Tops to FL340.</strong> Outlook extends through 0355Z.</p>
+    </div>
+    <div class="divider"></div>
+    <p style="font-size:12px; color:#64748b;">No significant SIGMETs over the en route corridor (AZ/NM/TX). Convective SIGMET 1C is over ND/MT — not applicable.</p>
+  </div>
+
+  <!-- Passenger Experience -->
+  <div class="card">
+    <div class="card-title"><span>🛋️</span> Passenger Experience</div>
+    <div class="comfort-row">
+      <div class="comfort-dots">
+        <div class="dot dot-fill"></div>
+        <div class="dot dot-fill"></div>
+        <div class="dot dot-fill"></div>
+        <div class="dot dot-empty"></div>
+        <div class="dot dot-empty"></div>
+      </div>
+      <div class="comfort-label">3/5 — Moderate Comfort</div>
+    </div>
+    <div class="comfort-desc">An overall manageable flight with some bumps expected during climbout and the Florida arrival, but smooth sailing in cruise.</div>
+
+    <div class="phase">
+      <div class="phase-name">🛫 Takeoff & Climb (0–40 min)</div>
+      <div class="phase-desc">Expect a grey, murky departure — the plane will quickly punch through a low marine layer over Santa Barbara. You'll feel nothing unusual, just cloud whipping past the windows until clear skies above. Light bumpiness possible during climb through coastal air.</div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-name">✈️ Cruise — Desert to Gulf (40 min – 3.5 hrs)</div>
+      <div class="phase-desc">Very smooth. You'll cruise above the weather over Arizona, New Mexico, and Texas at high altitude. Expect a calm, comfortable ride — great time to sleep or watch a film. Favorable tailwinds are nudging the plane eastward, so arrival might be a touch early.</div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-name">🌩️ Descent & Arrival into Miami (last 60–90 min)</div>
+      <div class="phase-desc">This is where it gets interesting. There are active thunderstorms lurking near the Florida coast tonight. The crew may vector around them, adding some extra turns. You could see lightning out the windows and feel some moderate turbulence as the plane threads through gaps in the storm cells. It's manageable but not a smooth-as-glass arrival. Trust your crew — they're well practiced at navigating Florida convection.</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>Data sourced from <a href="https://aviationweather.gov">aviationweather.gov</a> · Valid ~252100Z–260800Z</p>
+    <p style="margin-top:6px;">This briefing is for situational awareness only. Verify all data independently via your EFB and official sources. Check NOTAMs before flight. Pilots are responsible for all go/no-go decisions.</p>
+    <p style="margin-top:8px; color:#1f2937;">Generated by Lica Para · aviation.paralica.ai</p>
+  </div>
+
+</div>
+</body>
+</html>
