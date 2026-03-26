@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flight Weather Briefing · KSBA → KCRQ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0f1e;
+      color: #e8eaf0;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      padding: 40px 24px 32px;
+      background: linear-gradient(135deg, #0d1b2a 0%, #1a2744 100%);
+      border-radius: 20px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.07);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: -60px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; right: -40px;
+      width: 160px; height: 160px;
+      background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .plane-icon { font-size: 36px; margin-bottom: 12px; display: block; }
+
+    .route {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .route span { color: #60a5fa; font-size: 22px; margin: 0 10px; }
+
+    .flight-meta {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .meta-pill {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 13px;
+      color: #a0aec0;
+    }
+
+    .meta-pill strong { color: #e2e8f0; }
+
+    .status-banner {
+      background: linear-gradient(135deg, #064e3b, #065f46);
+      border: 1px solid #10b981;
+      border-radius: 14px;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .status-banner.caution {
+      background: linear-gradient(135deg, #713f12, #854d0e);
+      border: 1px solid #f59e0b;
+    }
+
+    .status-icon { font-size: 28px; flex-shrink: 0; }
+
+    .status-text strong {
+      display: block;
+      font-size: 17px;
+      color: #6ee7b7;
+      margin-bottom: 2px;
+    }
+
+    .status-banner.caution .status-text strong { color: #fde68a; }
+
+    .status-text p {
+      font-size: 13px;
+      color: #a7f3d0;
+      line-height: 1.4;
+    }
+
+    .status-banner.caution .status-text p { color: #fef3c7; }
+
+    .card {
+      background: #0d1b2a;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .card-icon { font-size: 20px; }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #7c8fa8;
+    }
+
+    .card-airport {
+      margin-left: auto;
+      font-size: 12px;
+      font-weight: 700;
+      color: #60a5fa;
+      background: rgba(59,130,246,0.12);
+      border-radius: 6px;
+      padding: 2px 8px;
+    }
+
+    .card-body { padding: 16px 20px 20px; }
+
+    .conditions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .condition {
+      background: rgba(255,255,255,0.03);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .condition-label {
+      font-size: 11px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 4px;
+    }
+
+    .condition-value { font-size: 18px; font-weight: 600; color: #f1f5f9; }
+    .condition-sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 8px;
+      padding: 5px 10px;
+      margin-top: 12px;
+      margin-right: 6px;
+    }
+
+    .badge-warn {
+      background: rgba(234,179,8,0.15);
+      border: 1px solid rgba(234,179,8,0.3);
+      color: #fde68a;
+    }
+
+    .badge-ok {
+      background: rgba(16,185,129,0.12);
+      border: 1px solid rgba(16,185,129,0.25);
+      color: #6ee7b7;
+    }
+
+    .badge-info {
+      background: rgba(59,130,246,0.12);
+      border: 1px solid rgba(59,130,246,0.25);
+      color: #93c5fd;
+    }
+
+    .timeline { position: relative; padding-left: 24px; }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 7px; top: 8px; bottom: 8px;
+      width: 2px;
+      background: linear-gradient(to bottom, #3b82f6, #6366f1, #8b5cf6);
+      border-radius: 2px;
+    }
+
+    .timeline-item { position: relative; margin-bottom: 18px; }
+    .timeline-item:last-child { margin-bottom: 0; }
+
+    .timeline-dot {
+      position: absolute;
+      left: -21px; top: 4px;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #3b82f6;
+      border: 2px solid #0a0f1e;
+    }
+
+    .timeline-title { font-size: 13px; font-weight: 600; color: #cbd5e1; margin-bottom: 3px; }
+    .timeline-desc { font-size: 13px; color: #718096; line-height: 1.5; }
+
+    .ride-meter { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+    .ride-label { font-size: 13px; color: #94a3b8; }
+    .ride-dots { display: flex; gap: 4px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.1); }
+    .dot.filled { background: #10b981; }
+    .dot.partial { background: #f59e0b; }
+    .ride-rating { font-size: 13px; font-weight: 600; color: #6ee7b7; }
+
+    .phases { display: flex; flex-direction: column; gap: 10px; }
+    .phase { display: flex; gap: 12px; align-items: flex-start; }
+    .phase-icon { font-size: 18px; width: 28px; text-align: center; flex-shrink: 0; margin-top: 1px; }
+    .phase-text strong { display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 2px; }
+    .phase-text p { font-size: 13px; color: #718096; line-height: 1.4; }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 11px;
+      color: #374151;
+      line-height: 1.6;
+    }
+
+    .footer a { color: #4b5563; }
+
+    .divider { height: 1px; background: rgba(255,255,255,0.05); margin: 14px 0; }
+    p.note { font-size: 13px; color: #718096; line-height: 1.5; }
+
+    @media (max-width: 480px) {
+      .conditions { grid-template-columns: 1fr 1fr; }
+      .route { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <span class="plane-icon">✈️</span>
+    <div class="route">KSBA <span>→</span> KCRQ</div>
+    <div style="color:#94a3b8; font-size:14px; margin-top:4px;">Santa Barbara → Carlsbad/McClellan-Palomar</div>
+    <div class="flight-meta">
+      <div class="meta-pill">📅 <strong>March 26, 2026</strong></div>
+      <div class="meta-pill">🕒 Departure <strong>4:00 PM PDT</strong></div>
+      <div class="meta-pill">✈️ Cruise <strong>FL250</strong></div>
+      <div class="meta-pill">⏱️ ~55 min</div>
+    </div>
+  </div>
+
+  <!-- Go/No-Go -->
+  <div class="status-banner">
+    <div class="status-icon">✅</div>
+    <div class="status-text">
+      <strong>GO — VFR Both Ends</strong>
+      <p>Clear conditions at departure and destination. Light haze at SBA, unlimited visibility at Carlsbad. No SIGMETs or AIRMETs on the SoCal coastal route. Convective activity confined to the Midwest — not a factor.</p>
+    </div>
+  </div>
+
+  <!-- Departure -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-icon">🛫</span>
+      <span class="card-title">Departure</span>
+      <span class="card-airport">KSBA</span>
+    </div>
+    <div class="card-body">
+      <div class="conditions">
+        <div class="condition">
+          <div class="condition-label">Ceiling</div>
+          <div class="condition-value">Few 1,500</div>
+          <div class="condition-sub">Scattered higher</div>
+        </div>
+        <div class="condition">
+          <div class="condition-label">Visibility</div>
+          <div class="condition-value">8 SM</div>
+          <div class="condition-sub">Haze</div>
+        </div>
+        <div class="condition">
+          <div class="condition-label">Wind</div>
+          <div class="condition-value">8 kts</div>
+          <div class="condition-sub">260° (W)</div>
+        </div>
+        <div class="condition">
+          <div class="condition-label">Temp / Dew</div>
+          <div class="condition-value">19°C / 15°C</div>
+          <div class="condition-sub">67°F — Warm</div>
+        </div>
+      </div>
+      <div>
+        <span class="badge badge-ok">☀️ MVFR / Marginal VFR</span>
+        <span class="badge badge-info">🌫️ Haze reducing viz slightly</span>
+      </div>
+      <div class="divider"></div>
+      <p class="note"><strong>TAF:</strong> SCT008 SCT250 through evening. Marine layer builds after 05Z (10 PM) with BKN005 and 4SM BR. Depart on time — conditions deteriorate overnight.</p>
+    </div>
+  </div>
+
+  <!-- En Route -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-icon">🗺️</span>
+      <span class="card-title">En Route · FL250</span>
+    </div>
+    <div class="card-body">
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-title">Climb Out — SBA Coastal</div>
+          <div class="timeline-desc">Clear above scattered clouds at 1,500 ft. Quick climb through the haze layer into clear skies. Winds light and variable below 3,000 ft.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:#6366f1"></div>
+          <div class="timeline-title">Cruise — SoCal Coast</div>
+          <div class="timeline-desc">Short coastal hop southeast along the SoCal coastline. Winds at FL250: 200° at 16 kts, temp -11°C. Well above any marine layer. Smooth ride expected.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:#8b5cf6"></div>
+          <div class="timeline-title">Descent — San Diego County</div>
+          <div class="timeline-desc">Begin descent near Oceanside. Clear skies below, calm winds at CRQ. Straightforward visual approach.</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div>
+        <span class="badge badge-ok">✅ No SIGMETs on route</span>
+        <span class="badge badge-ok">✅ No AIRMETs on route</span>
+        <span class="badge badge-info">🌬️ Winds 16 kts at cruise</span>
+        <span class="badge badge-info">🌡️ Temp -11°C at FL250</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Destination -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-icon">🛬</span>
+      <span class="card-title">Destination</span>
+      <span class="card-airport">KCRQ</span>
+    </div>
+    <div class="card-body">
+      <div class="conditions">
+        <div class="condition">
+          <div class="condition-label">Ceiling</div>
+          <div class="condition-value">Clear</div>
+          <div class="condition-sub">SKC</div>
+        </div>
+        <div class="condition">
+          <div class="condition-label">Visibility</div>
+          <div class="condition-value">10+ SM</div>
+          <div class="condition-sub">Unlimited</div>
+        </div>
+        <div class="condition">
+          <div class="condition-label">Wind</div>
+          <div class="condition-value">8 kts</div>
+          <div class="condition-sub">280° (W)</div>
+        </div>
+        <div class="condition">
+          <div class="condition-label">Temp</div>
+          <div class="condition-value">21°C</div>
+          <div class="condition-sub">70°F — Beautiful</div>
+        </div>
+      </div>
+      <div>
+        <span class="badge badge-ok">☀️ VFR — Clear Skies</span>
+      </div>
+      <div class="divider"></div>
+      <p class="note"><strong>TAF:</strong> SKC through early evening. Marine layer arrives after 07Z (midnight) — FEW005 then BKN004 with 4SM BR. ETA ~5 PM is well before any fog.</p>
+    </div>
+  </div>
+
+  <!-- Passenger Experience -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-icon">🧳</span>
+      <span class="card-title">Your Flight Experience</span>
+    </div>
+    <div class="card-body">
+      <div class="ride-meter">
+        <span class="ride-label">Comfort rating:</span>
+        <div class="ride-dots">
+          <div class="dot filled"></div>
+          <div class="dot filled"></div>
+          <div class="dot filled"></div>
+          <div class="dot filled"></div>
+          <div class="dot filled"></div>
+        </div>
+        <span class="ride-rating">Excellent</span>
+      </div>
+      <div class="phases">
+        <div class="phase">
+          <div class="phase-icon">🌤️</div>
+          <div class="phase-text">
+            <strong>Takeoff from Santa Barbara</strong>
+            <p>A thin haze layer near the surface — you'll climb through it in seconds. Light scattered clouds at 1,500 ft, then clear blue skies above. Ocean views immediately.</p>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-icon">🌊</div>
+          <div class="phase-text">
+            <strong>Cruise along the SoCal Coast</strong>
+            <p>Smooth, scenic ride down the coastline. Light winds, no turbulence. You'll see the Channel Islands, Malibu, and the LA basin below. Short cruise — only about 25 minutes at altitude.</p>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-icon">🏖️</div>
+          <div class="phase-text">
+            <strong>Descent & Landing at Carlsbad</strong>
+            <p>Gentle descent over Camp Pendleton into beautiful clear weather. Calm winds, 70°F, perfect visibility. Smooth landing expected. The beach is right there.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIREP Note -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-icon">📋</span>
+      <span class="card-title">Pilot Reports</span>
+    </div>
+    <div class="card-body">
+      <p class="note">One PIREP near Palm Springs (PSP) reports LLWS -12 kts during approach RY31L — not on your route. No PIREPs along the SBA–CRQ coastal corridor. Clean ride.</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Weather data sourced from <strong>aviationweather.gov</strong> (FAA/NWS)<br>
+    METARs: 2153Z · TAFs: 1911Z/1722Z · Winds Aloft: Valid 0000Z Mar 27<br>
+    Briefing generated March 26, 2026 · Valid for 4:00–5:00 PM PDT departure window<br>
+    <em>This briefing is for informational purposes. Pilots should verify all data independently and check NOTAMs before flight.</em>
+  </div>
+
+</div>
+</body>
+</html>
