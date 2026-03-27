@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Light Jet MX Reliability Report — SF50 vs PC-24 vs Phenom 300</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0a0f1e;
+    color: #e0e6f0;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 40px 24px 32px;
+    background: linear-gradient(135deg, #0d1b3e 0%, #0a1628 100%);
+    border-radius: 16px;
+    border: 1px solid #1e3a5f;
+  }
+  .header .badge {
+    display: inline-block;
+    background: #1a3a6e;
+    color: #7eb3ff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+  .header h1 {
+    font-size: clamp(22px, 4vw, 36px);
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .header h1 span { color: #5b9af5; }
+  .header .subtitle {
+    color: #8aabcc;
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  .header .meta { color: #4a6a8a; font-size: 12px; }
+
+  /* Summary cards row */
+  .summary-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 640px) { .summary-row { grid-template-columns: 1fr; } }
+
+  .aircraft-card {
+    background: #0d1b2e;
+    border: 1px solid #1e3a5f;
+    border-radius: 14px;
+    padding: 24px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .aircraft-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+  }
+  .card-sf50::before { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+  .card-pc24::before { background: linear-gradient(90deg, #f39c12, #d68910); }
+  .card-emb505::before { background: linear-gradient(90deg, #27ae60, #1e8449); }
+
+  .aircraft-card .ac-name {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .card-sf50 .ac-name { color: #e74c3c; }
+  .card-pc24 .ac-name { color: #f39c12; }
+  .card-emb505 .ac-name { color: #27ae60; }
+
+  .aircraft-card .ac-fullname {
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 18px;
+  }
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #162035;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { font-size: 12px; color: #6a8ab0; }
+  .stat-value { font-size: 14px; font-weight: 700; color: #e0e6f0; }
+  .stat-value.bad { color: #e74c3c; }
+  .stat-value.warn { color: #f39c12; }
+  .stat-value.good { color: #27ae60; }
+
+  .verdict-badge {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .verdict-avoid { background: rgba(231,76,60,0.15); color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
+  .verdict-caution { background: rgba(243,156,18,0.15); color: #f39c12; border: 1px solid rgba(243,156,18,0.3); }
+  .verdict-recommend { background: rgba(39,174,96,0.15); color: #27ae60; border: 1px solid rgba(39,174,96,0.3); }
+
+  /* Comparison table */
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #5b9af5;
+    margin-bottom: 16px;
+    margin-top: 36px;
+  }
+
+  .table-wrap {
+    background: #0d1b2e;
+    border: 1px solid #1e3a5f;
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead tr {
+    background: #0a1628;
+  }
+  thead th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #6a8ab0;
+    border-bottom: 1px solid #1e3a5f;
+  }
+  thead th:not(:first-child) { text-align: center; }
+  tbody tr { border-bottom: 1px solid #111e30; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(91,154,245,0.04); }
+  tbody td {
+    padding: 12px 16px;
+    color: #c8d8ea;
+  }
+  tbody td:not(:first-child) { text-align: center; }
+  tbody td.row-label { color: #8aabcc; font-size: 12px; font-weight: 600; }
+  .cell-bad { color: #e74c3c; font-weight: 700; }
+  .cell-warn { color: #f39c12; font-weight: 700; }
+  .cell-good { color: #27ae60; font-weight: 700; }
+  .cell-neutral { color: #8aabcc; }
+
+  /* Issues breakdown */
+  .issues-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 768px) { .issues-grid { grid-template-columns: 1fr; } }
+
+  .issues-card {
+    background: #0d1b2e;
+    border: 1px solid #1e3a5f;
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .issues-card h3 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #162035;
+  }
+  .card-sf50 h3 { color: #e74c3c; }
+  .card-pc24 h3 { color: #f39c12; }
+  .card-emb505 h3 { color: #27ae60; }
+
+  .issue-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid #0f1e30;
+    font-size: 12px;
+    color: #a8bcd0;
+  }
+  .issue-item:last-child { border-bottom: none; }
+  .issue-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+  .dot-red { background: #e74c3c; }
+  .dot-orange { background: #f39c12; }
+  .dot-yellow { background: #f1c40f; }
+  .dot-green { background: #27ae60; }
+  .dot-blue { background: #5b9af5; }
+
+  /* Notable events */
+  .events-list { margin-bottom: 32px; }
+  .event-item {
+    background: #0d1b2e;
+    border: 1px solid #1e3a5f;
+    border-left: 3px solid;
+    border-radius: 0 12px 12px 0;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .event-item.sev-high { border-left-color: #e74c3c; }
+  .event-item.sev-med { border-left-color: #f39c12; }
+  .event-item.sev-low { border-left-color: #5b9af5; }
+  .event-date { font-size: 11px; color: #6a8ab0; white-space: nowrap; min-width: 80px; padding-top: 2px; }
+  .event-aircraft { font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
+  .sev-high .event-aircraft { color: #e74c3c; }
+  .sev-med .event-aircraft { color: #f39c12; }
+  .sev-low .event-aircraft { color: #5b9af5; }
+  .event-desc { font-size: 13px; color: #c8d8ea; line-height: 1.4; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid #1e3a5f;
+    color: #3a5a7a;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+
+  /* Rating stars */
+  .stars { letter-spacing: 1px; }
+  .star-on { color: #f39c12; }
+  .star-off { color: #2a3a50; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">FAA SDR Analysis · 2022–2025</div>
+    <h1>Light Jet <span>Maintenance Reliability</span> Report</h1>
+    <div class="subtitle">Cirrus SF50 Vision Jet &nbsp;·&nbsp; Pilatus PC-24 &nbsp;·&nbsp; Embraer Phenom 300 (EMB-505)</div>
+    <div class="meta">Based on FAA Service Difficulty Reports (sdrs.faa.gov) · Generated March 26, 2026 · Anonymous public link</div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-row">
+
+    <div class="aircraft-card card-sf50">
+      <div class="ac-name">SF50</div>
+      <div class="ac-fullname">Cirrus Vision Jet</div>
+      <div class="stat-row">
+        <span class="stat-label">Total SDRs (2022–2025)</span>
+        <span class="stat-value bad">35</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Unscheduled Landings</span>
+        <span class="stat-value bad">11 (31%)</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Engine Shutdowns</span>
+        <span class="stat-value bad">3</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">CAPS Deployment</span>
+        <span class="stat-value bad">1 ✈️🪂</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Fleet Size (approx.)</span>
+        <span class="stat-value">~400</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Reliability Rating</span>
+        <span class="stars"><span class="star-on">★</span><span class="star-on">★</span><span class="star-off">★</span><span class="star-off">★</span><span class="star-off">★</span></span>
+      </div>
+      <span class="verdict-badge verdict-avoid">⚠️ Avoid</span>
+    </div>
+
+    <div class="aircraft-card card-pc24">
+      <div class="ac-name">PC-24</div>
+      <div class="ac-fullname">Pilatus PC-24</div>
+      <div class="stat-row">
+        <span class="stat-label">Total SDRs (2022–2025)</span>
+        <span class="stat-value warn">30</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Unscheduled Landings</span>
+        <span class="stat-value warn">18 (60%)</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Engine Shutdowns / Events</span>
+        <span class="stat-value warn">3</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Cabin Heater Smoke/Fire</span>
+        <span class="stat-value warn">5</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Fleet Size (approx.)</span>
+        <span class="stat-value">~120</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Reliability Rating</span>
+        <span class="stars"><span class="star-on">★</span><span class="star-on">★</span><span class="star-on">★</span><span class="star-off">★</span><span class="star-off">★</span></span>
+      </div>
+      <span class="verdict-badge verdict-caution">⚡ Caution</span>
+    </div>
+
+    <div class="aircraft-card card-emb505">
+      <div class="ac-name">EMB-505</div>
+      <div class="ac-fullname">Embraer Phenom 300</div>
+      <div class="stat-row">
+        <span class="stat-label">Total SDRs (2022–2025)</span>
+        <span class="stat-value warn">928</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Unscheduled Landings</span>
+        <span class="stat-value good">122 (13%)</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Engine Shutdowns</span>
+        <span class="stat-value good">9 (0.9%)</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Fleet Size (approx.)</span>
+        <span class="stat-value">~700</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">SDRs per Aircraft/Year</span>
+        <span class="stat-value good">~0.33</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Reliability Rating</span>
+        <span class="stars"><span class="star-on">★</span><span class="star-on">★</span><span class="star-on">★</span><span class="star-on">★</span><span class="star-on">★</span></span>
+      </div>
+      <span class="verdict-badge verdict-recommend">✅ Recommended</span>
+    </div>
+
+  </div>
+
+  <!-- Comparison Table -->
+  <div class="section-title">Head-to-Head Comparison</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>SF50 Vision Jet</th>
+          <th>PC-24</th>
+          <th>Phenom 300</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="row-label">Total SDRs (2022–2025)</td>
+          <td class="cell-bad">35</td>
+          <td class="cell-warn">30</td>
+          <td class="cell-neutral">928 *</td>
+        </tr>
+        <tr>
+          <td class="row-label">Est. SDRs per aircraft per year</td>
+          <td class="cell-bad">~0.022</td>
+          <td class="cell-warn">~0.063</td>
+          <td class="cell-good">~0.033</td>
+        </tr>
+        <tr>
+          <td class="row-label">Unscheduled landing rate</td>
+          <td class="cell-bad">31%</td>
+          <td class="cell-bad">60%</td>
+          <td class="cell-good">13%</td>
+        </tr>
+        <tr>
+          <td class="row-label">Engine shutdowns (in-flight)</td>
+          <td class="cell-bad">3</td>
+          <td class="cell-warn">3</td>
+          <td class="cell-good">9 (0.9% of fleet)</td>
+        </tr>
+        <tr>
+          <td class="row-label">Smoke / fire events</td>
+          <td class="cell-bad">6</td>
+          <td class="cell-bad">7</td>
+          <td class="cell-good">Rare</td>
+        </tr>
+        <tr>
+          <td class="row-label">FADEC / engine control issues</td>
+          <td class="cell-bad">4</td>
+          <td class="cell-warn">2</td>
+          <td class="cell-good">Low</td>
+        </tr>
+        <tr>
+          <td class="row-label">Avionics / CAS failures</td>
+          <td class="cell-bad">Frequent</td>
+          <td class="cell-warn">Moderate</td>
+          <td class="cell-good">Low</td>
+        </tr>
+        <tr>
+          <td class="row-label">Brake system issues</td>
+          <td class="cell-warn">3 (pad disintegration)</td>
+          <td class="cell-warn">3</td>
+          <td class="cell-warn">22</td>
+        </tr>
+        <tr>
+          <td class="row-label">Landing gear issues</td>
+          <td class="cell-warn">1 (alt extension used)</td>
+          <td class="cell-warn">3</td>
+          <td class="cell-good">Low</td>
+        </tr>
+        <tr>
+          <td class="row-label">Fleet-wide systemic defects</td>
+          <td class="cell-bad">Yes — housing wire, FADEC, brakes</td>
+          <td class="cell-warn">Yes — cabin heaters (2022)</td>
+          <td class="cell-good">Minor — emerg. batteries</td>
+        </tr>
+        <tr>
+          <td class="row-label">Most common issue</td>
+          <td class="cell-bad">Engine control / FADEC</td>
+          <td class="cell-warn">Cabin heater smoke/fire</td>
+          <td class="cell-good">Emergency lighting batteries</td>
+        </tr>
+        <tr>
+          <td class="row-label">Manufacturer support rating</td>
+          <td class="cell-warn">Limited (small fleet)</td>
+          <td class="cell-warn">Good (Swiss precision)</td>
+          <td class="cell-good">Excellent (large fleet/OEM)</td>
+        </tr>
+        <tr>
+          <td class="row-label">Parts availability</td>
+          <td class="cell-bad">Poor</td>
+          <td class="cell-warn">Moderate</td>
+          <td class="cell-good">Excellent</td>
+        </tr>
+        <tr>
+          <td class="row-label">Trend (2022 → 2025)</td>
+          <td class="cell-good">Improving ↓</td>
+          <td class="cell-good">Improving ↓</td>
+          <td class="cell-warn">Increasing ↑ (fleet growth)</td>
+        </tr>
+        <tr>
+          <td class="row-label">Overall reliability verdict</td>
+          <td><span style="color:#e74c3c;font-weight:700;">⚠️ AVOID</span></td>
+          <td><span style="color:#f39c12;font-weight:700;">⚡ CAUTION</span></td>
+          <td><span style="color:#27ae60;font-weight:700;">✅ RECOMMENDED</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:#3a5a7a;margin-top:-24px;margin-bottom:32px;">* Phenom 300 fleet is ~5–7× larger than PC-24 and ~1.75× larger than SF50. Raw SDR counts must be normalized by fleet size for fair comparison.</p>
+
+  <!-- Issues Breakdown -->
+  <div class="section-title">Key Issues by Aircraft</div>
+  <div class="issues-grid">
+
+    <div class="issues-card card-sf50">
+      <h3>SF50 Vision Jet</h3>
+      <div class="issue-item"><div class="issue-dot dot-red"></div>Autothrottle failure → CAPS parachute deployment (Nov 2022)</div>
+      <div class="issue-item"><div class="issue-dot dot-red"></div>FADEC NO DISPATCH / fuel control degraded (4 events)</div>
+      <div class="issue-item"><div class="issue-dot dot-red"></div>Both fuel valves failed simultaneously (2 events)</div>
+      <div class="issue-item"><div class="issue-dot dot-red"></div>Cascading CAS failure: pressurization + fuel + IPS + stick pusher at FL310</div>
+      <div class="issue-item"><div class="issue-dot dot-red"></div>Distributor housing wire defect — fleet-wide (13 identical reports, 2022)</div>
+      <div class="issue-item"><div class="issue-dot dot-orange"></div>Williams FJ33-5A compressor damage found during hot section (2 engines)</div>
+      <div class="issue-item"><div class="issue-dot dot-orange"></div>Autopilot failed to disconnect</div>
+      <div class="issue-item"><div class="issue-dot dot-orange"></div>Aileron trim failed in flight — limited control</div>
+      <div class="issue-item"><div class="issue-dot dot-orange"></div>Landing gear alternate extension required</div>
+      <div class="issue-item"><div class="issue-dot dot-orange"></div>Brake pad material disintegrating (3 events)</div>
+      <div class="issue-item"><div class="issue-dot dot-yellow"></div>ECS bleed overheat + burning smell in cabin</div>
+      <div class="issue-item"><div class="issue-dot dot-yellow"></div>Oil pressure warning / sensor failure in flight</div>
+    </div>
+
+    <div class="issues-card card-pc24">
+      <h3>Pilatus PC-24</h3>
+      <div class="issue-item"><div class="issue-dot dot-red"></div>Cabin electric heater smoke/fire — 5 events (4 diversions, 1 emergency declared)</div>
+      <div class="issue-item"><div class="issue-dot dot-red"></div>Engine LPT nozzle failed / engine destroyed (Jul 2022)</div>
+      <div class="issue-item"><div class="issue-dot dot-red"></div>In-flight engine shutdown — RH high oil + FADEC FAIL (2023, 2024)</div>
+      <div class="issue-item"><div class="issue-dot dot-red"></div>Window cracked at FL410 → diversion</div>
+      <div class="issue-item"><div class="issue-dot dot-orange"></div>Flap FAIL CAS — 3 diversions (actuator faults)</div>
+      <div class="issue-item"><div class="issue-dot dot-orange"></div>Main brake fail CAS — 3 events including emergency declaration</div>
+      <div class="issue-item"><div class="issue-dot dot-orange"></div>Pitot heat short → smoke from cockpit vents (2 events)</div>
+      <div class="issue-item"><div class="issue-dot dot-orange"></div>Landing gear failed to retract / unsafe indication (3 events)</div>
+      <div class="issue-item"><div class="issue-dot dot-orange"></div>Cascading avionics: AP/TF/FD/AOA fail → AHRS fault</div>
+      <div class="issue-item"><div class="issue-dot dot-yellow"></div>Wing anti-ice valve fail in icing conditions</div>
+      <div class="issue-item"><div class="issue-dot dot-yellow"></div>Fuel imbalance / wing fuel leak (2 events)</div>
+      <div class="issue-item"><div class="issue-dot dot-blue"></div>Heater issues largely resolved post-2022 service bulletins</div>
+    </div>
+
+    <div class="issues-card card-emb505">
+      <h3>Embraer Phenom 300</h3>
+      <div class="issue-item"><div class="issue-dot dot-yellow"></div>Emergency lighting batteries — 226 reports (minor, routine swap)</div>
+      <div class="issue-item"><div class="issue-dot dot-yellow"></div>Flight Control Electronics (FCE) faults — 30 reports</div>
+      <div class="issue-item"><div class="issue-dot dot-yellow"></div>Brake system issues — 22 reports</div>
+      <div class="issue-item"><div class="issue-dot dot-orange"></div>Brake FAIL CAS in flight — rare but occurred</div>
+      <div class="issue-item"><div class="issue-dot dot-orange"></div>Nose gear free-fall extension used (1 event)</div>
+      <div class="issue-item"><div class="issue-dot dot-yellow"></div>Flow control shutoff valve (ECS) failures</div>
+      <div class="issue-item"><div class="issue-dot dot-yellow"></div>Door seal leaks — 14 reports</div>
+      <div class="issue-item"><div class="issue-dot dot-green"></div>Only 9 engine shutdowns across 700+ aircraft fleet</div>
+      <div class="issue-item"><div class="issue-dot dot-green"></div>No fleet-wide systemic defects (2022–2025)</div>
+      <div class="issue-item"><div class="issue-dot dot-green"></div>High dispatch reliability — NetJets/Wheels Up ~98%+</div>
+      <div class="issue-item"><div class="issue-dot dot-green"></div>Largest maintenance network of the three</div>
+      <div class="issue-item"><div class="issue-dot dot-green"></div>PW617F engine — proven, low event rate</div>
+    </div>
+
+  </div>
+
+  <!-- Notable Events -->
+  <div class="section-title">Most Notable Incidents</div>
+  <div class="events-list">
+
+    <div class="event-item sev-high">
+      <div class="event-date">Nov 2022</div>
+      <div>
+        <div class="event-aircraft">SF50 — CIRRUS VISION JET</div>
+        <div class="event-desc">Autothrottle engaged during climbout, pulled power to idle, pitched aircraft nose up. Pilot unable to disengage. <strong>Deployed CAPS airframe parachute system.</strong> NTSB investigation opened.</div>
+      </div>
+    </div>
+
+    <div class="event-item sev-high">
+      <div class="event-date">Nov 2022</div>
+      <div>
+        <div class="event-aircraft">PC-24 — PILATUS</div>
+        <div class="event-desc">Crew declared emergency after smoke in cockpit/cabin. RH forward cabin electric heater PCB burned. Part of a string of 5 heater-related smoke/fire diversions across 2022.</div>
+      </div>
+    </div>
+
+    <div class="event-item sev-high">
+      <div class="event-date">Jul 2022</div>
+      <div>
+        <div class="event-aircraft">PC-24 — PILATUS</div>
+        <div class="event-desc">Failed braze weld on #1 LPT nozzle guide vane caused nozzle to contact LPT disk. Debris propagated through turbine section. <strong>Engine destroyed.</strong></div>
+      </div>
+    </div>
+
+    <div class="event-item sev-high">
+      <div class="event-date">Feb 2023</div>
+      <div>
+        <div class="event-aircraft">SF50 — CIRRUS VISION JET</div>
+        <div class="event-desc">Cruising at FL310: sudden cascading CAS messages — IPS engine inlet off, stick pusher fail, emergency battery fail, cabin pressure ctrl fail, IPS wing/stab fail, fuel valves both fail, FADEC no dispatch. Aircraft diverted.</div>
+      </div>
+    </div>
+
+    <div class="event-item sev-high">
+      <div class="event-date">Oct 2022</div>
+      <div>
+        <div class="event-aircraft">SF50 — CIRRUS VISION JET</div>
+        <div class="event-desc">Both fuel shutoff valves failed simultaneously. Aircraft diverted. Second occurrence of dual fuel valve failure on this type.</div>
+      </div>
+    </div>
+
+    <div class="event-item sev-med">
+      <div class="event-date">Mar 2024</div>
+      <div>
+        <div class="event-aircraft">PC-24 — PILATUS</div>
+        <div class="event-desc">Cracked windshield at FL410 → unscheduled landing. One of multiple structural/window events on early production aircraft.</div>
+      </div>
+    </div>
+
+    <div class="event-item sev-med">
+      <div class="event-date">Jan 2024</div>
+      <div>
+        <div class="event-aircraft">PHENOM 300 — EMBRAER</div>
+        <div class="event-desc">Brake FAIL CAS on approach. Crew landed and used emergency braking system. Aircraft stopped without incident. Brake control module found faulty.</div>
+      </div>
+    </div>
+
+    <div class="event-item sev-med">
+      <div class="event-date">Aug 2023</div>
+      <div>
+        <div class="event-aircraft">SF50 — CIRRUS VISION JET</div>
+        <div class="event-desc">Aileron trim not responding in flight. Aircraft difficult to control. Pilot pulled circuit breaker — still limited controllability. Diverted safely.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom line -->
+  <div class="section-title">Bottom Line</div>
+  <div class="table-wrap" style="padding: 24px 24px;">
+    <p style="color:#8aabcc; font-size:14px; line-height:1.7; margin-bottom:16px;">
+      <strong style="color:#27ae60;">Phenom 300 (EMB-505)</strong> is the clear reliability winner. Its 928 SDRs sound alarming until you normalize by fleet size (~700 aircraft) — that's roughly 0.33 SDRs per aircraft per year, and the majority are routine emergency lighting battery swaps. Only 13% of events resulted in an unscheduled landing. NetJets and Wheels Up run these jets at near-98% dispatch reliability in high-cycle operations. The PW617F engine has an excellent track record and the maintenance network is the largest of the three.
+    </p>
+    <p style="color:#8aabcc; font-size:14px; line-height:1.7; margin-bottom:16px;">
+      <strong style="color:#f39c12;">Pilatus PC-24</strong> is a capable aircraft with a known 2022 cabin heater epidemic that Pilatus addressed via service bulletins. The LPT nozzle destruction and recurring flap/brake/gear events are concerning for a small fleet of ~120 aircraft. Improving trajectory but best suited for operators with dedicated maintenance support and factory agreements. Don't buy an early production airframe without a thorough pre-buy.
+    </p>
+    <p style="color:#8aabcc; font-size:14px; line-height:1.7;">
+      <strong style="color:#e74c3c;">Cirrus SF50 Vision Jet</strong> has the smallest fleet and the most alarming incident profile. A CAPS deployment due to autothrottle failure, repeated FADEC events, a fleet-wide distributor housing defect affecting 13+ aircraft simultaneously, dual fuel valve failures, and cascading CAS events at FL310 paint a picture of an immature platform with systemic issues. The trend is improving (20 SDRs in 2022 → 2 in 2025) but the aircraft's single-engine dependency leaves zero margin when things go wrong. Unless you have a strong maintenance contract and alternate jet access, this is a significant operational risk.
+    </p>
+  </div>
+
+  <div class="footer">
+    Data source: FAA Service Difficulty Reports (sdrs.faa.gov) · Years: 2022–2025<br>
+    SDR counts reflect reports submitted to the FAA by operators and repair stations.<br>
+    Not all incidents are reported; actual reliability may differ. Fleet size estimates approximate.<br>
+    For informational purposes only. Always conduct your own pre-buy inspection and due diligence.<br><br>
+    Generated by Lica · aviation.paralica.ai · March 26, 2026
+  </div>
+
+</div>
+</body>
+</html>
