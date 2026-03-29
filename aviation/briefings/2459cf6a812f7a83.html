@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather Briefing: KCRQ → KSBA | Mon Mar 30, 2026</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0f1e;
+    color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    padding: 16px;
+  }
+  .container { max-width: 680px; margin: 0 auto; }
+  .header {
+    text-align: center;
+    padding: 28px 0 20px;
+    border-bottom: 1px solid #1e2a40;
+    margin-bottom: 20px;
+  }
+  .route { font-size: 2.2rem; font-weight: 700; letter-spacing: 0.05em; color: #fff; }
+  .route-arrow { color: #4a9eff; margin: 0 12px; }
+  .meta { color: #7a8faa; font-size: 0.9rem; margin-top: 8px; line-height: 1.6; }
+  .meta strong { color: #a0b4cc; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .badge-vfr { background: #1a3d2a; color: #4ade80; border: 1px solid #2d6b47; }
+  .badge-ifr { background: #3d1a1a; color: #f87171; border: 1px solid #6b2d2d; }
+  .badge-mvfr { background: #2d2a1a; color: #fbbf24; border: 1px solid #6b5a1a; }
+  .go-banner {
+    border-radius: 12px;
+    padding: 16px 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .go-banner.caution {
+    background: linear-gradient(135deg, #3d2e1a, #2d2010);
+    border: 1px solid #c2741a;
+    color: #fb923c;
+  }
+  .go-banner.go {
+    background: linear-gradient(135deg, #1a3d28, #0d2818);
+    border: 1px solid #1a7a42;
+    color: #4ade80;
+  }
+  .go-banner .go-sub { font-size: 0.82rem; font-weight: 500; color: #7aaa8a; margin-top: 5px; }
+  .go-banner.caution .go-sub { color: #aa8a6a; }
+  .card {
+    background: #111827;
+    border: 1px solid #1e2a40;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #4a9eff;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .airport-name { font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .airport-sub { color: #4a9eff; font-size: 0.8rem; margin-bottom: 14px; }
+  .wx-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .wx-item { background: #0d1626; border-radius: 8px; padding: 10px 12px; }
+  .wx-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: #4a6280; margin-bottom: 4px; }
+  .wx-value { font-size: 1.05rem; font-weight: 600; color: #e2e8f0; }
+  .wx-value.warn { color: #fbbf24; }
+  .wx-value.good { color: #4ade80; }
+  .metar-raw {
+    background: #0d1626;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: 'SF Mono', 'Courier New', monospace;
+    font-size: 0.72rem;
+    color: #4a9eff;
+    margin-top: 10px;
+    word-break: break-all;
+    line-height: 1.5;
+  }
+  .taf-block { background: #0d1626; border-radius: 6px; padding: 10px 12px; margin-top: 10px; }
+  .taf-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: #4a6280; margin-bottom: 6px; }
+  .taf-line { font-family: 'SF Mono', 'Courier New', monospace; font-size: 0.72rem; color: #7a9ec0; line-height: 1.8; }
+  .taf-line.highlight { color: #4ade80; }
+  .taf-line.warn { color: #fbbf24; }
+  .divider { border: none; border-top: 1px solid #1e2a40; margin: 14px 0; }
+  .enroute-segment { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1a2436; }
+  .enroute-segment:last-child { border-bottom: none; }
+  .seg-icon { font-size: 1.3rem; width: 32px; text-align: center; flex-shrink: 0; padding-top: 2px; }
+  .seg-body { flex: 1; }
+  .seg-title { font-size: 0.85rem; font-weight: 600; color: #c8d8ea; margin-bottom: 3px; }
+  .seg-detail { font-size: 0.78rem; color: #5a7898; line-height: 1.5; }
+  .pax-card { background: linear-gradient(135deg, #0f1e35, #0a1525); border: 1px solid #1e3a5f; }
+  .pax-phases { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .pax-phase { display: flex; gap: 12px; align-items: flex-start; }
+  .pax-emoji { font-size: 1.2rem; width: 28px; text-align: center; flex-shrink: 0; }
+  .pax-phase-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #4a6280; margin-bottom: 2px; }
+  .pax-phase-text { font-size: 0.85rem; color: #a0b4cc; line-height: 1.5; }
+  .rating-dots { display: flex; gap: 5px; margin: 10px 0 4px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #1e2a40; }
+  .dot.filled { background: #4ade80; }
+  .checklist { list-style: none; margin-top: 6px; }
+  .checklist li { display: flex; gap: 8px; font-size: 0.82rem; color: #7a9ec0; padding: 4px 0; line-height: 1.4; }
+  .checklist li .ci { flex-shrink: 0; }
+  .checklist li.warn { color: #fb923c; }
+  .checklist li.ok { color: #4ade80; }
+  .checklist li.note { color: #a0b4cc; }
+  .footer { text-align: center; color: #3a5070; font-size: 0.72rem; padding: 20px 0 10px; line-height: 1.7; }
+  .footer a { color: #4a7aaa; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="route">
+      KCRQ <span class="route-arrow">→</span> KSBA
+    </div>
+    <div class="meta">
+      <strong>Monday, March 30, 2026</strong> · Depart 2:00 PM PST (2200Z)<br>
+      Cruise 8,000 ft MSL · Coastal California northbound
+    </div>
+  </div>
+
+  <!-- Go/No-Go Banner -->
+  <div class="go-banner caution">
+    ⚠️ CONDITIONAL GO
+    <div class="go-sub">Departure excellent — verify KSBA marine layer has fully cleared before committing</div>
+  </div>
+
+  <!-- Departure -->
+  <div class="card">
+    <div class="card-title">🛫 Departure — KCRQ</div>
+    <div class="airport-name">McClellan-Palomar Airport</div>
+    <div class="airport-sub">Tower 118.6 · ATIS 120.15 · Rwy 06/24 (4,897 ft) · Elev 100 ft MSL</div>
+
+    <div class="wx-row">
+      <div class="wx-item">
+        <div class="wx-label">Ceiling</div>
+        <div class="wx-value good">CLR <span class="badge badge-vfr">VFR</span></div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Visibility</div>
+        <div class="wx-value good">10SM</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Wind</div>
+        <div class="wx-value">VRB @ 3 kts</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Altimeter</div>
+        <div class="wx-value">29.91 inHg</div>
+      </div>
+    </div>
+
+    <div class="metar-raw">METAR KCRQ 291553Z AUTO VRB03KT 10SM CLR 19/08 A2991</div>
+
+    <div class="taf-block">
+      <div class="taf-label">TAF — forecast at 2PM departure (2200Z)</div>
+      <div class="taf-line highlight">FM291900 27009KT P6SM SCT250 ✓ Clear, light westerly sea breeze</div>
+      <div class="taf-line highlight">Departure window: 10SM+ SCT250 — clean VFR ✓</div>
+    </div>
+
+    <hr class="divider">
+    <div style="font-size:0.8rem; color:#5a7898; line-height:1.6;">
+      Carlsbad is gorgeous at 2PM — clear, warm, calm. Easy departure. Expect runway 24 with the afternoon westerly. 4,897 ft is comfortable.
+    </div>
+  </div>
+
+  <!-- En Route -->
+  <div class="card">
+    <div class="card-title">✈️ En Route — KCRQ Coastal Northwest to KSBA</div>
+
+    <div class="enroute-segment">
+      <div class="seg-icon">🏖️</div>
+      <div class="seg-body">
+        <div class="seg-title">Departure Climb (KCRQ → San Diego Coast)</div>
+        <div class="seg-detail">10SM CLR at Carlsbad, light westerly 270° @ 9 kts. Clean climbout northbound along the coast. Classic San Diego afternoon VFR.</div>
+      </div>
+    </div>
+
+    <div class="enroute-segment">
+      <div class="seg-icon">🌊</div>
+      <div class="seg-body">
+        <div class="seg-title">LA Basin / Ventura Corridor</div>
+        <div class="seg-detail">Winds at 8,000 ft interpolated between SAN (250° @ 11 kts) and SBA (260° @ 7 kts) — expect a light quartering headwind from the west, 8–11 kts. Haze possible in the LA basin below but clear at cruise. No turbulence PIREPs on coastal route. No SIGMETs or AIRMETs.</div>
+      </div>
+    </div>
+
+    <div class="enroute-segment">
+      <div class="seg-icon">🏔️</div>
+      <div class="seg-body">
+        <div class="seg-title">Santa Barbara Channel Approach (→ KSBA)</div>
+        <div class="seg-detail">TAF forecasts KSBA P6SM SCT200 by 1900Z (~noon). Afternoon sea breeze 210° @ 8 kts at KSBA — expect runway 07. Note: marine layer tops ~600-800 ft this morning; fully clear by 2PM per forecast, but verify ATIS on descent.</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+    <div style="font-size:0.78rem; color:#4a6280;">
+      <strong style="color:#7a9ec0;">Winds aloft at 6,000–9,000 ft</strong> (SAN/SBA region, valid Mon 0000Z):<br>
+      SAN 9k: 250° @ 11 kts, +3°C · SBA 9k: 260° @ 7 kts, +2°C<br>
+      Light westerly headwind component northbound — minor impact on flight time<br>
+      No icing risk at 8,000 ft · Temps +2 to +3°C at cruise<br>
+      <br>
+      <strong style="color:#7a9ec0;">SIGMETs/AIRMETs:</strong> None active
+    </div>
+  </div>
+
+  <!-- Destination -->
+  <div class="card">
+    <div class="card-title">🛬 Destination — KSBA</div>
+    <div class="airport-name">Santa Barbara Municipal</div>
+    <div class="airport-sub">Tower 119.7 · ATIS 132.65 · Rwy 07/25 (6,052 ft) · Elev 4 ft MSL</div>
+
+    <div class="wx-row">
+      <div class="wx-item">
+        <div class="wx-label">Ceiling (now)</div>
+        <div class="wx-value warn">OVC002 <span class="badge badge-ifr">IFR</span></div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Visibility (now)</div>
+        <div class="wx-value warn">½SM FG</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Wind</div>
+        <div class="wx-value">Calm</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Altimeter</div>
+        <div class="wx-value">29.94 inHg</div>
+      </div>
+    </div>
+
+    <div class="metar-raw">SPECI KSBA 291620Z 00000KT 1/2SM R07/P6000FT FG OVC002 14/14 A2994</div>
+
+    <div class="taf-block">
+      <div class="taf-label">TAF — forecast at arrival (~3:30PM / 2330Z)</div>
+      <div class="taf-line warn">FM291800 VRB03KT 6SM HZ BKN005 — clearing mid-morning</div>
+      <div class="taf-line highlight">FM291900 21008KT P6SM SCT200 ✓ Clear by noon — well before your arrival</div>
+      <div class="taf-line highlight">2330Z arrival window: P6SM SCT200 — solid VFR ✓</div>
+      <div class="taf-line warn">⚠ TAF only valid to 1200Z Mon — pull updated TAF morning of flight</div>
+    </div>
+
+    <hr class="divider">
+    <div style="font-size:0.8rem; color:#5a7898; line-height:1.6;">
+      KSBA is IFR right now (classic morning coastal fog, VV002, ½SM) but the TAF clears it well before noon. By 2PM–3:30PM arrival it should be P6SM SCT200 with a pleasant afternoon sea breeze from 210°. Always verify on ATIS during descent — SBA can hold fog longer on some days. PIREPs show tops ~800 ft; if any remnant layer exists, it's thin and dissipating.
+    </div>
+  </div>
+
+  <!-- Passenger Experience -->
+  <div class="card pax-card">
+    <div class="card-title">🌟 Passenger Experience</div>
+
+    <div class="rating-dots">
+      <div class="dot filled"></div>
+      <div class="dot filled"></div>
+      <div class="dot filled"></div>
+      <div class="dot filled"></div>
+      <div class="dot filled"></div>
+    </div>
+    <div style="font-size:0.72rem; color:#4a6280; margin-bottom:14px;">5/5 — Perfect afternoon SoCal coastal run</div>
+
+    <div class="pax-phases">
+      <div class="pax-phase">
+        <div class="pax-emoji">☀️</div>
+        <div>
+          <div class="pax-phase-title">Departure</div>
+          <div class="pax-phase-text">Carlsbad at 2PM is pure Southern California — warm, clear, breezy. Quick climbout and you're looking down at the Pacific and the San Diego coastline.</div>
+        </div>
+      </div>
+      <div class="pax-phase">
+        <div class="pax-emoji">🌊</div>
+        <div>
+          <div class="pax-phase-title">Cruise</div>
+          <div class="pax-phase-text">Smooth cruise up the coast at 8,000 ft. LA Basin, Malibu, Point Mugu, Ventura — front-row seat to the California coastline. Light westerly headwind, nothing disruptive. Relaxed ride.</div>
+        </div>
+      </div>
+      <div class="pax-phase">
+        <div class="pax-emoji">🏡</div>
+        <div>
+          <div class="pax-phase-title">Arrival</div>
+          <div class="pax-phase-text">Descending into Santa Barbara in the afternoon sun with the Channel Islands in the background. Gentle sea breeze, clear skies. One of the nicest approaches on the California coast.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checklist -->
+  <div class="card">
+    <div class="card-title">✅ Go / No-Go Summary</div>
+
+    <ul class="checklist">
+      <li class="ok"><span class="ci">✅</span> KCRQ departure at 2PM: 10SM CLR, light westerly — perfect VFR</li>
+      <li class="ok"><span class="ci">✅</span> En route coastal: VFR throughout, light westerly winds (minor headwind)</li>
+      <li class="ok"><span class="ci">✅</span> No icing risk at 8,000 ft (+2 to +3°C at cruise)</li>
+      <li class="ok"><span class="ci">✅</span> No SIGMETs or AIRMETs on route</li>
+      <li class="warn"><span class="ci">⚠️</span> KSBA currently IFR (fog) — TAF clears noon, but verify ATIS on descent</li>
+      <li class="ok"><span class="ci">✅</span> KSBA TAF shows P6SM SCT200 by 1900Z (~noon) — arrival at ~2330Z is well clear</li>
+      <li class="note"><span class="ci">📋</span> Pull updated KSBA TAF morning of — today's only valid to 1200Z Mon</li>
+      <li class="note"><span class="ci">📋</span> Check NOTAMs on EFB before departure</li>
+      <li class="note"><span class="ci">📋</span> SBA afternoon sea breeze: expect Rwy 07, winds 210° @ 8 kts at arrival</li>
+    </ul>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Weather data: <a href="https://aviationweather.gov">aviationweather.gov</a> (FAA/NWS) · Generated Sun Mar 29, 2026 09:45 PDT<br>
+    Valid for preflight planning — verify independently before flight · Always check NOTAMs on EFB<br>
+    <a href="https://aviation.paralica.ai">aviation.paralica.ai</a>
+  </div>
+
+</div>
+</body>
+</html>
