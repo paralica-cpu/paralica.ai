@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather Briefing: KCMA → KSEZ | Mon Mar 30, 2026</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0f1e;
+    color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    padding: 16px;
+  }
+  .container { max-width: 680px; margin: 0 auto; }
+  .header {
+    text-align: center;
+    padding: 28px 0 20px;
+    border-bottom: 1px solid #1e2a40;
+    margin-bottom: 20px;
+  }
+  .route {
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #fff;
+  }
+  .route-arrow { color: #4a9eff; margin: 0 12px; }
+  .meta {
+    color: #7a8faa;
+    font-size: 0.9rem;
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+  .meta strong { color: #a0b4cc; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .badge-vfr { background: #1a3d2a; color: #4ade80; border: 1px solid #2d6b47; }
+  .badge-ifr { background: #3d1a1a; color: #f87171; border: 1px solid #6b2d2d; }
+  .badge-mvfr { background: #2d2a1a; color: #fbbf24; border: 1px solid #6b5a1a; }
+  .badge-caution { background: #3d2e1a; color: #fb923c; border: 1px solid #7a4f1a; }
+  .go-banner {
+    border-radius: 12px;
+    padding: 16px 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .go-banner.caution {
+    background: linear-gradient(135deg, #3d2e1a, #2d2010);
+    border: 1px solid #c2741a;
+    color: #fb923c;
+  }
+  .go-banner.go {
+    background: linear-gradient(135deg, #1a3d28, #0d2818);
+    border: 1px solid #1a7a42;
+    color: #4ade80;
+  }
+  .go-banner .go-sub {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #a0b4aa;
+    margin-top: 5px;
+  }
+  .card {
+    background: #111827;
+    border: 1px solid #1e2a40;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #4a9eff;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .icon { font-size: 0.95rem; }
+  .airport-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .airport-sub {
+    color: #4a9eff;
+    font-size: 0.8rem;
+    margin-bottom: 14px;
+  }
+  .wx-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .wx-item {
+    background: #0d1626;
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .wx-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #4a6280;
+    margin-bottom: 4px;
+  }
+  .wx-value {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #e2e8f0;
+  }
+  .wx-value.warn { color: #fbbf24; }
+  .wx-value.danger { color: #f87171; }
+  .wx-value.good { color: #4ade80; }
+  .metar-raw {
+    background: #0d1626;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: 'SF Mono', 'Courier New', monospace;
+    font-size: 0.72rem;
+    color: #4a9eff;
+    margin-top: 10px;
+    word-break: break-all;
+    line-height: 1.5;
+  }
+  .taf-block {
+    background: #0d1626;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-top: 10px;
+  }
+  .taf-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #4a6280;
+    margin-bottom: 6px;
+  }
+  .taf-line {
+    font-family: 'SF Mono', 'Courier New', monospace;
+    font-size: 0.72rem;
+    color: #7a9ec0;
+    line-height: 1.8;
+  }
+  .taf-line.highlight { color: #4ade80; }
+  .taf-line.warn { color: #fbbf24; }
+  .divider {
+    border: none;
+    border-top: 1px solid #1e2a40;
+    margin: 14px 0;
+  }
+  .enroute-segment {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #1a2436;
+  }
+  .enroute-segment:last-child { border-bottom: none; }
+  .seg-icon {
+    font-size: 1.3rem;
+    width: 32px;
+    text-align: center;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+  .seg-body { flex: 1; }
+  .seg-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #c8d8ea;
+    margin-bottom: 3px;
+  }
+  .seg-detail {
+    font-size: 0.78rem;
+    color: #5a7898;
+    line-height: 1.5;
+  }
+  .pax-card {
+    background: linear-gradient(135deg, #0f1e35, #0a1525);
+    border: 1px solid #1e3a5f;
+  }
+  .pax-phases { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .pax-phase {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .pax-emoji { font-size: 1.2rem; width: 28px; text-align: center; flex-shrink: 0; }
+  .pax-phase-title {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #4a6280;
+    margin-bottom: 2px;
+  }
+  .pax-phase-text {
+    font-size: 0.85rem;
+    color: #a0b4cc;
+    line-height: 1.5;
+  }
+  .rating-dots { display: flex; gap: 5px; margin: 10px 0 4px; }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #1e2a40;
+  }
+  .dot.filled { background: #4ade80; }
+  .dot.half { background: #fbbf24; }
+  .checklist {
+    list-style: none;
+    margin-top: 6px;
+  }
+  .checklist li {
+    display: flex;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: #7a9ec0;
+    padding: 4px 0;
+    line-height: 1.4;
+  }
+  .checklist li .ci { flex-shrink: 0; }
+  .checklist li.warn { color: #fb923c; }
+  .checklist li.ok { color: #4ade80; }
+  .checklist li.note { color: #a0b4cc; }
+  .footer {
+    text-align: center;
+    color: #3a5070;
+    font-size: 0.72rem;
+    padding: 20px 0 10px;
+    line-height: 1.7;
+  }
+  .footer a { color: #4a7aaa; text-decoration: none; }
+  @media (max-width: 420px) {
+    .route { font-size: 1.7rem; }
+    .wx-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="route">
+      KCMA <span class="route-arrow">→</span> KSEZ
+    </div>
+    <div class="meta">
+      <strong>Monday, March 30, 2026</strong> · Depart 10:30 AM PST (1830Z)<br>
+      Cruise 9,500 ft MSL · SR22T N269PG · 58 gal takeoff fuel
+    </div>
+  </div>
+
+  <!-- Go/No-Go Banner -->
+  <div class="go-banner caution">
+    ⚠️ CONDITIONAL GO
+    <div class="go-sub">Verify marine layer has cleared at KCMA before departure</div>
+  </div>
+
+  <!-- Departure -->
+  <div class="card">
+    <div class="card-title"><span class="icon">🛫</span> Departure — KCMA</div>
+    <div class="airport-name">Camarillo Airport</div>
+    <div class="airport-sub">Tower 128.2 · ATIS 126.025 · Rwy 08/26 (6,013 ft) · Elev 23 ft MSL</div>
+
+    <div class="wx-row">
+      <div class="wx-item">
+        <div class="wx-label">Ceiling</div>
+        <div class="wx-value warn">VV002 <span class="badge badge-ifr">IFR</span></div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Visibility</div>
+        <div class="wx-value warn">1SM BR</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Wind</div>
+        <div class="wx-value">090° @ 4 kts</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Altimeter</div>
+        <div class="wx-value">29.93 inHg</div>
+      </div>
+    </div>
+
+    <div class="metar-raw">METAR KCMA 291455Z AUTO 09004KT 1SM BR VV002 11/11 A2993</div>
+
+    <div class="taf-block">
+      <div class="taf-label">TAF forecast at departure time (~1830Z)</div>
+      <div class="taf-line">KCMA 291412Z 2914/3012</div>
+      <div class="taf-line">FM291500 VRB03KT 1SM BR BKN004</div>
+      <div class="taf-line">FM291600 VRB03KT 5SM BR SCT008</div>
+      <div class="taf-line highlight">FM291700 VRB03KT P6SM SCT200 ✓ Clear by ~10am</div>
+      <div class="taf-line highlight">FM291900 25006KT P6SM SCT200 ✓ 1030 dep window</div>
+      <div class="taf-line warn">⚠ TAF only extends to 04:00Z Mon — verify updated TAF morning of flight</div>
+    </div>
+
+    <hr class="divider">
+    <div style="font-size:0.8rem; color:#5a7898; line-height:1.6;">
+      Marine layer tops ~600–800 ft per recent PIREPs (SBA OVC001-TOP007). After climb-out, expect clear skies. Coastal fog typically burns off KCMA by 9–10am. Monitor ATIS before engine start.
+    </div>
+  </div>
+
+  <!-- En Route -->
+  <div class="card">
+    <div class="card-title"><span class="icon">✈️</span> En Route — KCMA FIM L70 VCV HEC KSEZ</div>
+
+    <div class="enroute-segment">
+      <div class="seg-icon">🌫️</div>
+      <div class="seg-body">
+        <div class="seg-title">Coastal Climb (KCMA → FIM)</div>
+        <div class="seg-detail">Punch through marine layer tops (~800 ft). Above it, clear skies. No icing concern (temps +11°C surface, +2°C at 9,500 ft).</div>
+      </div>
+    </div>
+
+    <div class="enroute-segment">
+      <div class="seg-icon">☀️</div>
+      <div class="seg-body">
+        <div class="seg-title">Inland Cruise (L70 → VCV → HEC)</div>
+        <div class="seg-detail">VCV reporting 10SM CLR. Winds at 9,000 ft: 240–260° @ 17–27 kts — tailwind component building east through Mojave. Expect haze below (3SM LGB area) but VFR throughout. No turbulence PIREPs on route.</div>
+      </div>
+    </div>
+
+    <div class="enroute-segment">
+      <div class="seg-icon">🏜️</div>
+      <div class="seg-body">
+        <div class="seg-title">Desert / Arizona Transition (HEC → KSEZ)</div>
+        <div class="seg-detail">Clear and smooth. Terrain rises toward Sedona (elev 4,830 ft) — your 9,500 cruise gives ~4,670 ft AGL clearance. No SIGMETs or AIRMETs active on route.</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+    <div style="font-size:0.78rem; color:#4a6280;">
+      <strong style="color:#7a9ec0;">Winds aloft at 9,000 ft</strong> (valid Mon 0000Z, SFO/SLC region):<br>
+      SBA: 260° @ 7 kts · WJF area: 240° @ 17 kts · ONT/VCV: 240° @ 27 kts<br>
+      Temp at cruise: ~+2°C · No icing risk<br>
+      <br>
+      <strong style="color:#7a9ec0;">SIGMETs/AIRMETs:</strong> None active
+    </div>
+  </div>
+
+  <!-- Destination -->
+  <div class="card">
+    <div class="card-title"><span class="icon">🛬</span> Destination — KSEZ</div>
+    <div class="airport-name">Sedona Airport</div>
+    <div class="airport-sub">Non-towered · CTAF/Unicom · Rwy 03/21 (5,132 ft) · Elev 4,830 ft MSL</div>
+
+    <div class="wx-row">
+      <div class="wx-item">
+        <div class="wx-label">Ceiling</div>
+        <div class="wx-value good">CLR <span class="badge badge-vfr">VFR</span></div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Visibility</div>
+        <div class="wx-value good">10SM+</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Wind</div>
+        <div class="wx-value">020° @ 9 kts</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Altimeter</div>
+        <div class="wx-value">30.17 inHg</div>
+      </div>
+    </div>
+
+    <div class="metar-raw">METAR KSEZ 291455Z AUTO 02009KT 10SM CLR 17/M02 A3017</div>
+
+    <div class="taf-block">
+      <div class="taf-label">TAF (arrival ~1330Z Mon, ~2.5 hrs after dep)</div>
+      <div class="taf-line highlight">KSEZ 2912/3012 04006KT P6SM SCT250 ✓ Clear at arrival</div>
+      <div class="taf-line highlight">FM291500 VRB05KT P6SM SCT250 ✓ Calm winds</div>
+      <div class="taf-line">FM292000 20011G22KT P6SM SCT100 BKN200 — afternoon winds (not a factor)</div>
+    </div>
+
+    <hr class="divider">
+    <div style="font-size:0.8rem; color:#5a7898; line-height:1.6;">
+      Sedona is non-towered at 4,830 ft MSL with terrain on all sides — standard pattern entry and situational awareness on final. No approach currency concerns for VFR. Winds calm at arrival time; afternoon gusts not a factor for 10:30am departure.
+    </div>
+  </div>
+
+  <!-- Passenger Experience -->
+  <div class="card pax-card">
+    <div class="card-title"><span class="icon">🌟</span> Passenger Experience</div>
+
+    <div class="rating-dots">
+      <div class="dot filled"></div>
+      <div class="dot filled"></div>
+      <div class="dot filled"></div>
+      <div class="dot filled"></div>
+      <div class="dot half"></div>
+    </div>
+    <div style="font-size:0.72rem; color:#4a6280; margin-bottom:14px;">4/5 — Excellent ride once airborne</div>
+
+    <div class="pax-phases">
+      <div class="pax-phase">
+        <div class="pax-emoji">☁️</div>
+        <div>
+          <div class="pax-phase-title">Departure</div>
+          <div class="pax-phase-text">Quick climb through low coastal fog — might look a bit gray for 30 seconds before breaking into clear blue sky. Worth the wait.</div>
+        </div>
+      </div>
+      <div class="pax-phase">
+        <div class="pax-emoji">✈️</div>
+        <div>
+          <div class="pax-phase-title">Cruise</div>
+          <div class="pax-phase-text">Smooth at 9,500 ft over the Mojave. Tailwind gives a nice boost heading east. Occasional light haze below but clear up top. Expect a steady, comfortable ride.</div>
+        </div>
+      </div>
+      <div class="pax-phase">
+        <div class="pax-emoji">🏔️</div>
+        <div>
+          <div class="pax-phase-title">Descent & Landing</div>
+          <div class="pax-phase-text">Descending into Sedona with stunning red rock scenery all around. Calm winds, clear sky. One of the most visually beautiful approaches in the Southwest.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checklist -->
+  <div class="card">
+    <div class="card-title"><span class="icon">✅</span> Go / No-Go Summary</div>
+
+    <ul class="checklist">
+      <li class="warn"><span class="ci">⚠️</span> <strong>KCMA departure: verify fog has lifted</strong> — TAF clears ~10am, but confirm on ATIS before start</li>
+      <li class="ok"><span class="ci">✅</span> En route KCMA→KSEZ: VFR throughout, no SIGMETs</li>
+      <li class="ok"><span class="ci">✅</span> No icing risk at 9,500 ft (+2°C at cruise alt)</li>
+      <li class="ok"><span class="ci">✅</span> Sedona (KSEZ): clear, calm, beautiful — 10SM+ all day</li>
+      <li class="ok"><span class="ci">✅</span> Tailwind component en route — efficient eastbound cruise</li>
+      <li class="ok"><span class="ci">✅</span> No active SIGMETs or AIRMETs on route</li>
+      <li class="ok"><span class="ci">✅</span> 58 gal fuel: ~2.5 hr flight, comfortable reserves</li>
+      <li class="note"><span class="ci">📋</span> Always check NOTAMs on your EFB before departure</li>
+      <li class="note"><span class="ci">📋</span> Pull updated TAF morning of — this TAF expires ~0400Z Mon</li>
+    </ul>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Weather data: <a href="https://aviationweather.gov">aviationweather.gov</a> (FAA/NWS) · Generated Sun Mar 29, 2026 08:00 PDT<br>
+    Valid for preflight planning — verify independently before flight · Always check NOTAMs on EFB<br>
+    <a href="https://aviation.paralica.ai">aviation.paralica.ai</a>
+  </div>
+
+</div>
+</body>
+</html>
