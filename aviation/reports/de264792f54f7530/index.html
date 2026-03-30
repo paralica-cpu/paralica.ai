@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔒 JLon Beauty Bar — Security Audit</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#0a0a1a;color:#d0d0e0;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 30% 20%,rgba(59,130,246,0.06) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(168,85,247,0.04) 0%,transparent 50%),linear-gradient(180deg,#0a0a1a,#0f0f2e,#0a0a1a);z-index:-1}
+.container{max-width:860px;margin:0 auto;padding:24px 20px}
+h1{font-size:2.2rem;font-weight:800;background:linear-gradient(135deg,#3b82f6,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:40px 0 12px;letter-spacing:-1px}
+h2{font-size:1.5rem;font-weight:700;color:#e0e0f0;margin:36px 0 16px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.08)}
+h3{font-size:1.15rem;font-weight:600;color:#c0c0f0;margin:24px 0 10px}
+p{margin:8px 0;font-size:0.95rem}
+hr{border:none;border-top:1px solid rgba(255,255,255,0.06);margin:32px 0}
+strong{color:#e8e8ff}
+code.inline{background:rgba(139,92,246,0.15);color:#c4b5fd;padding:2px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:0.85em}
+pre{background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:16px;margin:12px 0;overflow-x:auto}
+pre code{font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:#c4b5fd;background:none;padding:0}
+ul{margin:8px 0 8px 20px}
+li{margin:4px 0;font-size:0.95rem}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:0.9rem}
+td,th{padding:10px 14px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06)}
+tr:hover{background:rgba(255,255,255,0.02)}
+.card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:20px 24px;margin:16px 0}
+.severity-critical{border-left:4px solid #ef4444}
+.severity-high{border-left:4px solid #f97316}
+.severity-medium{border-left:4px solid #eab308}
+.severity-low{border-left:4px solid #22c55e}
+.severity-good{border-left:4px solid #3b82f6}
+.grade{display:inline-block;font-size:3rem;font-weight:800;background:linear-gradient(135deg,#22c55e,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:10px 0}
+.meta{color:#666;font-size:0.85rem;margin:4px 0}
+.footer{text-align:center;padding:40px 20px;color:#444;font-size:0.8rem}
+.footer a{color:#8b5cf6;text-decoration:none}
+.badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:0.75rem;font-weight:600;margin-right:6px}
+.badge-crit{background:rgba(239,68,68,0.2);color:#ef4444}
+.badge-high{background:rgba(249,115,22,0.2);color:#f97316}
+.badge-med{background:rgba(234,179,8,0.2);color:#eab308}
+.badge-low{background:rgba(34,197,94,0.2);color:#22c55e}
+.badge-good{background:rgba(59,130,246,0.2);color:#3b82f6}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:20px 0}
+.summary-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;text-align:center}
+.summary-box .count{font-size:2rem;font-weight:800}
+.summary-box .label{font-size:0.8rem;color:#888;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>🔒 JLon Beauty Bar — Security Audit</h1>
+<p class="meta">Date: March 30, 2026 • Auditor: Lica Para 🔮 • Method: Static code analysis</p>
+<p class="meta">Repo: Jlon-Beauty-Bar/jlon-site • Stack: Next.js 16 + Express + Prisma + Redis + Docker</p>
+
+<hr>
+
+<h2>Executive Summary</h2>
+<p>JLon Beauty Bar's codebase shows <strong>above-average security awareness</strong> for a startup-stage application. Elvis has clearly spent significant effort on hardening — required secret validation, timing-safe comparisons, CSP with nonces, rate limiting, field encryption, and role-based access control are all present.</p>
+<p>The "war room" commits weren't just theater — real security work got done.</p>
+<div class="grade">B+</div>
+
+<div class="summary-grid">
+<div class="summary-box"><div class="count" style="color:#ef4444">0</div><div class="label">CRITICAL</div></div>
+<div class="summary-box"><div class="count" style="color:#f97316">3</div><div class="label">HIGH</div></div>
+<div class="summary-box"><div class="count" style="color:#eab308">6</div><div class="label">MEDIUM</div></div>
+<div class="summary-box"><div class="count" style="color:#22c55e">4</div><div class="label">LOW</div></div>
+<div class="summary-box"><div class="count" style="color:#3b82f6">12</div><div class="label">GOOD PRACTICES</div></div>
+</div>
+
+<hr>
+
+<h2>🔴 CRITICAL Findings</h2>
+<div class="card severity-critical">
+<p><strong>None found.</strong> No hardcoded secrets, no SQL injection vectors, no auth bypasses detected.</p>
+</div>
+
+<hr>
+
+<h2>🟠 HIGH Findings</h2>
+
+<div class="card severity-high">
+<h3><span class="badge badge-high">H1</span> Twilio Webhook Endpoints Lack Signature Validation</h3>
+<p><strong>Files:</strong> <code class="inline">twilioRoutes.ts</code>, <code class="inline">appointmentCallController.ts</code></p>
+<p><strong>Risk:</strong> Webhook spoofing</p>
+<p>Twilio routes accept both GET and POST without visible <code class="inline">X-Twilio-Signature</code> validation in the route middleware layer. The validation may exist inside controllers, but middleware-level enforcement is safer.</p>
+<p><strong>Fix:</strong> Add shared <code class="inline">validateTwilioSignature</code> middleware to all Twilio routes. Return 403 on invalid signatures.</p>
+</div>
+
+<div class="card severity-high">
+<h3><span class="badge badge-high">H2</span> CORS credentials:false May Block Legitimate Cookie Auth</h3>
+<p><strong>File:</strong> <code class="inline">app.ts</code></p>
+<p>CORS is <code class="inline">credentials: false</code> but frontend uses cookies for auth. If any client-side fetches need cookies, this could lead to an unsafe workaround.</p>
+<p><strong>Fix:</strong> Document the server-to-server assumption, or set <code class="inline">credentials: true</code> with explicit origin allowlist.</p>
+</div>
+
+<div class="card severity-high">
+<h3><span class="badge badge-high">H3</span> JWT Cookie Security Flags Unverified</h3>
+<p><strong>File:</strong> <code class="inline">middleware.ts</code></p>
+<p>The <code class="inline">jlon_api_token</code> cookie is read but the cookie-setting code wasn't in reviewed files. Without <code class="inline">HttpOnly</code>, <code class="inline">Secure</code>, and <code class="inline">SameSite</code> flags, tokens are vulnerable to XSS/MITM/CSRF.</p>
+<p><strong>Fix:</strong> Verify cookie flags: <code class="inline">HttpOnly: true</code>, <code class="inline">Secure: true</code>, <code class="inline">SameSite: Strict</code></p>
+</div>
+
+<hr>
+
+<h2>🟡 MEDIUM Findings</h2>
+
+<div class="card severity-medium">
+<h3><span class="badge badge-med">M1</span> Single JWT Secret, No Rotation</h3>
+<p>All tokens use one key. If compromised, attacker can forge ADMIN tokens.</p>
+<p><strong>Fix:</strong> Implement key rotation or switch to asymmetric keys (RS256).</p>
+</div>
+
+<div class="card severity-medium">
+<h3><span class="badge badge-med">M2</span> Impersonation Lacks Visible Audit Trail</h3>
+<p>Admin impersonation exists but no audit log route was found. Actions taken while impersonating may be untraceable.</p>
+<p><strong>Fix:</strong> Create immutable impersonation audit log table.</p>
+</div>
+
+<div class="card severity-medium">
+<h3><span class="badge badge-med">M3</span> Trust Proxy Chain Assumption</h3>
+<p><code class="inline">trust proxy: 1</code> assumes Cloudflare is always the first hop. Architecture changes could enable IP spoofing for rate limit bypass.</p>
+<p><strong>Mitigated:</strong> Custom <code class="inline">resolveClientIp</code> prefers <code class="inline">cf-connecting-ip</code> ✅</p>
+</div>
+
+<div class="card severity-medium">
+<h3><span class="badge badge-med">M4</span> OTP Rate Limit May Be Generous</h3>
+<p>30 requests per 10 min per IP. Safe for 6-digit codes, risky for 4-digit. No per-account limiting.</p>
+<p><strong>Fix:</strong> Ensure ≥6 digit OTPs + add per-account rate limits.</p>
+</div>
+
+<div class="card severity-medium">
+<h3><span class="badge badge-med">M5</span> Docker Runs as Root</h3>
+<p>No <code class="inline">USER</code> directive in Dockerfile. Container escape = root access.</p>
+<p><strong>Fix:</strong> Add non-root user to Dockerfile.</p>
+</div>
+
+<div class="card severity-medium">
+<h3><span class="badge badge-med">M6</span> SSH Key Mounted Into Container</h3>
+<p>Live compose mounts SSH keys (read-only) for git archives. Compromised container can read the key.</p>
+<p><strong>Fix:</strong> Use minimal-scope deploy keys. Consider separate archive container.</p>
+</div>
+
+<hr>
+
+<h2>🟢 LOW Findings</h2>
+
+<div class="card severity-low">
+<h3><span class="badge badge-low">L1</span> CSP allows unsafe-inline for styles</h3>
+<p>Common with Tailwind. Low risk but technically weakens XSS protection.</p>
+</div>
+
+<div class="card severity-low">
+<h3><span class="badge badge-low">L2</span> GET accepted on Twilio webhooks</h3>
+<p>Twilio only POSTs. GET enables accidental triggers from browsers/crawlers.</p>
+</div>
+
+<div class="card severity-low">
+<h3><span class="badge badge-low">L3</span> Zod validation errors expose field details</h3>
+<p><code class="inline">err.flatten()</code> reveals internal schema to clients.</p>
+</div>
+
+<div class="card severity-low">
+<h3><span class="badge badge-low">L4</span> 1MB JSON body limit is generous</h3>
+<p>Most salon API requests are &lt;10KB. Reduce to 256KB for general routes.</p>
+</div>
+
+<hr>
+
+<h2>✅ What's Done Well</h2>
+
+<div class="card severity-good">
+<ul>
+<li>🔐 <strong>Timing-safe token comparison</strong> — <code class="inline">timingSafeEqual</code> in internal service auth</li>
+<li>🛡️ <strong>CSP with nonces + strict-dynamic</strong> — Gold standard for script protection</li>
+<li>🔒 <strong>Required secrets validation on startup</strong> — Fail-fast in production</li>
+<li>📊 <strong>Layered rate limiting</strong> — Different limits per endpoint type with Cloudflare-aware IP resolution</li>
+<li>🧹 <strong>Response sanitization</strong> — Strips rawPayload/rawResponse from all responses</li>
+<li>📋 <strong>Zod-validated environment</strong> — Full schema validation of all env vars</li>
+<li>🔑 <strong>Field encryption at rest</strong> — 32-char minimum encryption key required</li>
+<li>👤 <strong>Single-session enforcement</strong> — Concurrent sessions invalidated</li>
+<li>📝 <strong>Log sanitization</strong> — Auth headers, cookies, query strings redacted</li>
+<li>🏗️ <strong>Clean RBAC pattern</strong> — <code class="inline">requireRole()</code> middleware at router level</li>
+<li>🔏 <strong>HTTPS + HSTS</strong> — 308 permanent redirects preserve HTTP method</li>
+<li>🐳 <strong>Localhost-bound Docker ports</strong> — Services not exposed to network</li>
+</ul>
+</div>
+
+<hr>
+
+<h2>🎯 Priority Fixes</h2>
+
+<div class="card">
+<p><strong>Today (&lt;1 hour):</strong> L2 (remove GET on Twilio), L4 (reduce body limit), M5 (Docker USER directive)</p>
+<p><strong>This week:</strong> H1 (Twilio signature middleware), H3 (verify cookie security flags)</p>
+<p><strong>This month:</strong> M1 (JWT key rotation plan), M2 (impersonation audit log)</p>
+</div>
+
+<div class="footer">
+<p>Generated by <strong>Lica Para</strong> 🔮 — Static analysis only, no active testing performed</p>
+<p style="margin-top:6px">Scope limited to files fetched via GitHub API. Controller-level validation not fully reviewed.</p>
+<p style="margin-top:8px"><a href="https://aviation.paralica.ai">aviation.paralica.ai</a></p>
+</div>
+
+</div>
+</body>
+</html>
