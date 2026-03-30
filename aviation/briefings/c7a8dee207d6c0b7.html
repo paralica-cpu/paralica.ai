@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather Briefing: KCRQ → KSBA | Sun Mar 29, 2026</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0f1e;
+    color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    padding: 16px;
+  }
+  .container { max-width: 680px; margin: 0 auto; }
+  .header {
+    text-align: center;
+    padding: 28px 0 20px;
+    border-bottom: 1px solid #1e2a40;
+    margin-bottom: 20px;
+  }
+  .route { font-size: 2.2rem; font-weight: 700; letter-spacing: 0.05em; color: #fff; }
+  .route-arrow { color: #4a9eff; margin: 0 12px; }
+  .meta { color: #7a8faa; font-size: 0.9rem; margin-top: 8px; line-height: 1.6; }
+  .meta strong { color: #a0b4cc; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .badge-vfr { background: #1a3d2a; color: #4ade80; border: 1px solid #2d6b47; }
+  .badge-ifr { background: #3d1a1a; color: #f87171; border: 1px solid #6b2d2d; }
+  .badge-mvfr { background: #2d2a1a; color: #fbbf24; border: 1px solid #6b5a1a; }
+  .go-banner {
+    border-radius: 12px;
+    padding: 16px 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .go-banner.go {
+    background: linear-gradient(135deg, #1a3d28, #0d2818);
+    border: 1px solid #1a7a42;
+    color: #4ade80;
+  }
+  .go-banner .go-sub { font-size: 0.82rem; font-weight: 500; color: #7aaa8a; margin-top: 5px; }
+  .alert-box {
+    background: #1a2a3d;
+    border: 1px solid #2a4a6d;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    color: #7ab4dd;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+  .alert-box strong { color: #a0c8ee; }
+  .card {
+    background: #111827;
+    border: 1px solid #1e2a40;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #4a9eff;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .airport-name { font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .airport-sub { color: #4a9eff; font-size: 0.8rem; margin-bottom: 14px; }
+  .wx-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .wx-item { background: #0d1626; border-radius: 8px; padding: 10px 12px; }
+  .wx-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: #4a6280; margin-bottom: 4px; }
+  .wx-value { font-size: 1.05rem; font-weight: 600; color: #e2e8f0; }
+  .wx-value.warn { color: #fbbf24; }
+  .wx-value.good { color: #4ade80; }
+  .metar-raw {
+    background: #0d1626;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: 'SF Mono', 'Courier New', monospace;
+    font-size: 0.72rem;
+    color: #4a9eff;
+    margin-top: 10px;
+    word-break: break-all;
+    line-height: 1.5;
+  }
+  .taf-block { background: #0d1626; border-radius: 6px; padding: 10px 12px; margin-top: 10px; }
+  .taf-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: #4a6280; margin-bottom: 6px; }
+  .taf-line { font-family: 'SF Mono', 'Courier New', monospace; font-size: 0.72rem; color: #7a9ec0; line-height: 1.8; }
+  .taf-line.highlight { color: #4ade80; }
+  .taf-line.warn { color: #fbbf24; }
+  .divider { border: none; border-top: 1px solid #1e2a40; margin: 14px 0; }
+  .enroute-segment { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1a2436; }
+  .enroute-segment:last-child { border-bottom: none; }
+  .seg-icon { font-size: 1.3rem; width: 32px; text-align: center; flex-shrink: 0; padding-top: 2px; }
+  .seg-body { flex: 1; }
+  .seg-title { font-size: 0.85rem; font-weight: 600; color: #c8d8ea; margin-bottom: 3px; }
+  .seg-detail { font-size: 0.78rem; color: #5a7898; line-height: 1.5; }
+  .pax-card { background: linear-gradient(135deg, #0f1e35, #0a1525); border: 1px solid #1e3a5f; }
+  .pax-phases { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .pax-phase { display: flex; gap: 12px; align-items: flex-start; }
+  .pax-emoji { font-size: 1.2rem; width: 28px; text-align: center; flex-shrink: 0; }
+  .pax-phase-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #4a6280; margin-bottom: 2px; }
+  .pax-phase-text { font-size: 0.85rem; color: #a0b4cc; line-height: 1.5; }
+  .rating-dots { display: flex; gap: 5px; margin: 10px 0 4px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #1e2a40; }
+  .dot.filled { background: #4ade80; }
+  .checklist { list-style: none; margin-top: 6px; }
+  .checklist li { display: flex; gap: 8px; font-size: 0.82rem; color: #7a9ec0; padding: 4px 0; line-height: 1.4; }
+  .checklist li .ci { flex-shrink: 0; }
+  .checklist li.warn { color: #fb923c; }
+  .checklist li.ok { color: #4ade80; }
+  .checklist li.note { color: #a0b4cc; }
+  .footer { text-align: center; color: #3a5070; font-size: 0.72rem; padding: 20px 0 10px; line-height: 1.7; }
+  .footer a { color: #4a7aaa; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="route">
+      KCRQ <span class="route-arrow">→</span> KSBA
+    </div>
+    <div class="meta">
+      <strong>Sunday, March 29, 2026</strong> · ~6:00 PM PDT (0100Z) · Current conditions<br>
+      Cruise 8,000 ft MSL · Coastal California northbound
+    </div>
+  </div>
+
+  <!-- Go/No-Go Banner -->
+  <div class="go-banner go">
+    ✅ GO
+    <div class="go-sub">Both airports clear — excellent evening VFR conditions</div>
+  </div>
+
+  <!-- Data freshness note -->
+  <div class="alert-box">
+    <strong>📡 Fresh data as of ~6PM PDT.</strong> KSBA has cleared beautifully — FEW005 @ 8SM right now, winds 240° @ 7 kts. The morning fog is long gone. Evening departure window is clean. Note: TAF shows a new marine layer forming overnight after ~9PM, so plan to be on the ground at KSBA before then.
+  </div>
+
+  <!-- Departure -->
+  <div class="card">
+    <div class="card-title">🛫 Departure — KCRQ</div>
+    <div class="airport-name">McClellan-Palomar Airport</div>
+    <div class="airport-sub">Tower 118.6 · ATIS 120.15 · Rwy 06/24 (4,897 ft) · Elev 100 ft MSL</div>
+
+    <div class="wx-row">
+      <div class="wx-item">
+        <div class="wx-label">Ceiling</div>
+        <div class="wx-value good">CLR <span class="badge badge-vfr">VFR</span></div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Visibility</div>
+        <div class="wx-value good">10SM</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Wind</div>
+        <div class="wx-value">270° @ 3 kts</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Altimeter</div>
+        <div class="wx-value">29.89 inHg</div>
+      </div>
+    </div>
+
+    <div class="metar-raw">METAR KCRQ 300053Z 27003KT 10SM CLR 21/16 A2989</div>
+
+    <div class="taf-block">
+      <div class="taf-label">TAF — departure window</div>
+      <div class="taf-line highlight">3000/3002 24009KT P6SM SCT250 ✓ Clear through ~7PM</div>
+      <div class="taf-line warn">FM300200 VRB03KT P6SM BKN250 — clouds building after 7PM, still VFR</div>
+      <div class="taf-line warn">FM300500 VRB04KT 6SM BR BKN007 — marine layer returns overnight (~10PM)</div>
+    </div>
+
+    <hr class="divider">
+    <div style="font-size:0.8rem; color:#5a7898; line-height:1.6;">
+      KCRQ is perfect right now. Depart soon to arrive KSBA before the marine layer reforms there (~9-10PM). A 6PM departure gives comfortable margin.
+    </div>
+  </div>
+
+  <!-- En Route -->
+  <div class="card">
+    <div class="card-title">✈️ En Route — KCRQ Coastal Northwest to KSBA</div>
+
+    <div class="enroute-segment">
+      <div class="seg-icon">🌅</div>
+      <div class="seg-body">
+        <div class="seg-title">Departure Climb (KCRQ → San Diego Coast)</div>
+        <div class="seg-detail">10SM CLR, light westerly breeze. Evening light — great visibility. Climbout northbound along the beautiful San Diego coast.</div>
+      </div>
+    </div>
+
+    <div class="enroute-segment">
+      <div class="seg-icon">🌊</div>
+      <div class="seg-body">
+        <div class="seg-title">LA Basin / Ventura Corridor</div>
+        <div class="seg-detail">Winds at 8,000 ft: light westerly 8–11 kts — minor headwind component northbound. Haze possible below but VFR clear at cruise. No turbulence PIREPs. No SIGMETs or AIRMETs.</div>
+      </div>
+    </div>
+
+    <div class="enroute-segment">
+      <div class="seg-icon">🌆</div>
+      <div class="seg-body">
+        <div class="seg-title">Santa Barbara Approach (→ KSBA)</div>
+        <div class="seg-detail">KSBA is clear right now — FEW005 at 8SM, winds 240° @ 7 kts. Expect Rwy 07. Arrives before sunset (~7:30PM). TAF shows marine layer returning after ~9PM so you'll be well ahead of it.</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+    <div style="font-size:0.78rem; color:#4a6280;">
+      <strong style="color:#7a9ec0;">Winds aloft at 6,000–9,000 ft</strong> (SAN/SBA region):<br>
+      SAN 9k: 250° @ 11 kts, +3°C · SBA 9k: 260° @ 7 kts, +2°C<br>
+      Light westerly headwind northbound — minor fuel/time impact<br>
+      No icing risk at 8,000 ft<br>
+      <br>
+      <strong style="color:#7a9ec0;">SIGMETs/AIRMETs:</strong> None active
+    </div>
+  </div>
+
+  <!-- Destination -->
+  <div class="card">
+    <div class="card-title">🛬 Destination — KSBA</div>
+    <div class="airport-name">Santa Barbara Municipal</div>
+    <div class="airport-sub">Tower 119.7 · ATIS 132.65 · Rwy 07/25 (6,052 ft) · Elev 4 ft MSL</div>
+
+    <div class="wx-row">
+      <div class="wx-item">
+        <div class="wx-label">Ceiling</div>
+        <div class="wx-value good">FEW005 <span class="badge badge-vfr">VFR</span></div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Visibility</div>
+        <div class="wx-value good">8SM</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Wind</div>
+        <div class="wx-value">240° @ 7 kts</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-label">Altimeter</div>
+        <div class="wx-value">29.89 inHg</div>
+      </div>
+    </div>
+
+    <div class="metar-raw">METAR KSBA 300053Z 24007KT 8SM FEW005 17/15 A2989</div>
+
+    <div class="taf-block">
+      <div class="taf-label">TAF — arrival window (~7:30PM PDT / 0230Z)</div>
+      <div class="taf-line highlight">3000/3004 24008KT P6SM SCT200 ✓ Clear at arrival</div>
+      <div class="taf-line warn">FM300400 VRB03KT 3SM BR BKN004 — marine layer returns ~9PM</div>
+      <div class="taf-line warn">FM300700 VRB03KT 1/4SM FG VV002 — overnight IFR (after you land)</div>
+    </div>
+
+    <hr class="divider">
+    <div style="font-size:0.8rem; color:#5a7898; line-height:1.6;">
+      KSBA looking great right now and through your arrival window. Afternoon sea breeze 240° @ 7 kts — expect Rwy 07. Be aware: new marine layer forms ~9PM tonight, so don't linger. You want wheels down by 8PM at the latest.
+    </div>
+  </div>
+
+  <!-- Passenger Experience -->
+  <div class="card pax-card">
+    <div class="card-title">🌟 Passenger Experience</div>
+
+    <div class="rating-dots">
+      <div class="dot filled"></div>
+      <div class="dot filled"></div>
+      <div class="dot filled"></div>
+      <div class="dot filled"></div>
+      <div class="dot filled"></div>
+    </div>
+    <div style="font-size:0.72rem; color:#4a6280; margin-bottom:14px;">5/5 — Golden hour coastal California</div>
+
+    <div class="pax-phases">
+      <div class="pax-phase">
+        <div class="pax-emoji">🌇</div>
+        <div>
+          <div class="pax-phase-title">Departure</div>
+          <div class="pax-phase-text">Late afternoon Carlsbad — warm, clear, golden light. The Pacific is stunning at this hour. Easy departure, perfect visibility.</div>
+        </div>
+      </div>
+      <div class="pax-phase">
+        <div class="pax-emoji">🌊</div>
+        <div>
+          <div class="pax-phase-title">Cruise</div>
+          <div class="pax-phase-text">Smooth cruise up the California coast at 8,000 ft during golden hour. Malibu, Ventura, Point Mugu — the coastline glows in the late afternoon sun. Light headwind, nothing disruptive.</div>
+        </div>
+      </div>
+      <div class="pax-phase">
+        <div class="pax-emoji">🏡</div>
+        <div>
+          <div class="pax-phase-title">Arrival</div>
+          <div class="pax-phase-text">Into Santa Barbara just before sunset. Clear skies, gentle sea breeze, Channel Islands on the horizon. About as good as it gets for a Sunday evening arrival.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checklist -->
+  <div class="card">
+    <div class="card-title">✅ Go / No-Go Summary</div>
+
+    <ul class="checklist">
+      <li class="ok"><span class="ci">✅</span> KCRQ right now: 10SM CLR — perfect VFR departure</li>
+      <li class="ok"><span class="ci">✅</span> En route: VFR throughout, no SIGMETs, no turbulence</li>
+      <li class="ok"><span class="ci">✅</span> KSBA right now: 8SM FEW005 — VFR, afternoon sea breeze established</li>
+      <li class="ok"><span class="ci">✅</span> No icing at 8,000 ft (+2 to +3°C at cruise)</li>
+      <li class="warn"><span class="ci">⚠️</span> KSBA marine layer returns ~9PM — target wheels down by 8PM</li>
+      <li class="ok"><span class="ci">✅</span> 6PM departure gives ~90 min buffer before SBA goes IFR tonight</li>
+      <li class="note"><span class="ci">📋</span> Check NOTAMs on EFB before departure</li>
+      <li class="note"><span class="ci">📋</span> KSBA: expect Rwy 07, winds 240° @ 7 kts at arrival</li>
+    </ul>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Weather data: <a href="https://aviationweather.gov">aviationweather.gov</a> (FAA/NWS) · Generated Sun Mar 29, 2026 18:00 PDT<br>
+    Valid for preflight planning — verify independently before flight · Always check NOTAMs on EFB<br>
+    <a href="https://aviation.paralica.ai">aviation.paralica.ai</a>
+  </div>
+
+</div>
+</body>
+</html>
