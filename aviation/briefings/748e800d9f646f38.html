@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flight Weather Briefing · KSBA → KUDD</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0f1e;
+      color: #e8eaf0;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+    .container { max-width: 680px; margin: 0 auto; }
+
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 40px 24px 32px;
+      background: linear-gradient(135deg, #0d1b2a 0%, #1a2744 100%);
+      border-radius: 20px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.07);
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: -60px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; right: -40px;
+      width: 160px; height: 160px;
+      background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .route-label {
+      font-size: 13px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #6b7cb5;
+      margin-bottom: 12px;
+    }
+    .route-display {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 16px;
+    }
+    .airport-code {
+      font-size: 48px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: #ffffff;
+      line-height: 1;
+    }
+    .route-arrow {
+      font-size: 24px;
+      color: #3b82f6;
+    }
+    .flight-meta {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .meta-label {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #6b7cb5;
+    }
+    .meta-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: #e8eaf0;
+    }
+
+    /* Go/No-Go Banner */
+    .gng-banner {
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .gng-go { background: linear-gradient(135deg, #0a2e1a 0%, #0d3d20 100%); border-color: rgba(34,197,94,0.3); }
+    .gng-caution { background: linear-gradient(135deg, #2e1f0a 0%, #3d2a0d 100%); border-color: rgba(234,179,8,0.3); }
+    .gng-nogo { background: linear-gradient(135deg, #2e0a0a 0%, #3d0d0d 100%); border-color: rgba(239,68,68,0.3); }
+    .gng-icon { font-size: 36px; flex-shrink: 0; }
+    .gng-content {}
+    .gng-status { font-size: 22px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+    .gng-go .gng-status { color: #22c55e; }
+    .gng-caution .gng-status { color: #eab308; }
+    .gng-nogo .gng-status { color: #ef4444; }
+    .gng-summary { font-size: 14px; color: #9da8c5; margin-top: 4px; line-height: 1.5; }
+
+    /* Cards */
+    .card {
+      background: linear-gradient(135deg, #0d1421 0%, #111827 100%);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #6b7cb5;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.06);
+    }
+
+    /* Weather Grid */
+    .wx-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .wx-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .wx-item-label {
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #6b7cb5;
+      margin-bottom: 6px;
+    }
+    .wx-item-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #e8eaf0;
+    }
+    .wx-item-sub {
+      font-size: 12px;
+      color: #9da8c5;
+      margin-top: 3px;
+    }
+    .wx-full {
+      grid-column: 1 / -1;
+    }
+
+    /* Badges */
+    .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .badge-vfr { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+    .badge-mvfr { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
+    .badge-ifr { background: rgba(234,179,8,0.15); color: #eab308; border: 1px solid rgba(234,179,8,0.3); }
+    .badge-lifr { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+    .badge-warn { background: rgba(234,179,8,0.15); color: #eab308; border: 1px solid rgba(234,179,8,0.3); }
+    .badge-ok { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+    .badge-caution { background: rgba(251,146,60,0.15); color: #fb923c; border: 1px solid rgba(251,146,60,0.3); }
+    .badge-info { background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); }
+
+    /* METAR raw */
+    .metar-raw {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      color: #7a8ab5;
+      margin-top: 14px;
+      word-break: break-all;
+      line-height: 1.6;
+    }
+
+    /* En Route Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 28px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 9px; top: 8px; bottom: 8px;
+      width: 2px;
+      background: linear-gradient(to bottom, #3b82f6, #6366f1, #3b82f6);
+      border-radius: 2px;
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .timeline-item:last-child { margin-bottom: 0; }
+    .timeline-dot {
+      position: absolute;
+      left: -24px;
+      top: 4px;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #3b82f6;
+      border: 2px solid #0a0f1e;
+    }
+    .timeline-dot.dest { background: #22c55e; }
+    .timeline-phase {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #6b7cb5;
+      margin-bottom: 4px;
+    }
+    .timeline-detail {
+      font-size: 14px;
+      color: #c5cae0;
+      line-height: 1.5;
+    }
+    .timeline-winds {
+      font-size: 13px;
+      color: #9da8c5;
+      margin-top: 4px;
+    }
+
+    /* Passenger Experience */
+    .comfort-rating {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .comfort-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+    }
+    .comfort-dot.filled { background: #22c55e; }
+    .comfort-dot.half { background: #eab308; }
+
+    .phase-list { list-style: none; }
+    .phase-list li {
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 14px;
+      color: #c5cae0;
+      line-height: 1.5;
+    }
+    .phase-list li:last-child { border-bottom: none; }
+    .phase-emoji { font-size: 18px; flex-shrink: 0; width: 24px; text-align: center; }
+
+    /* Alert box */
+    .alert {
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .alert-warn { background: rgba(234,179,8,0.08); border: 1px solid rgba(234,179,8,0.2); color: #d4a91a; }
+    .alert-info { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); color: #7cb5f5; }
+    .alert-ok { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); color: #4adb82; }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: #4a5578;
+      line-height: 1.8;
+    }
+    .footer a { color: #6b7cb5; text-decoration: none; }
+    .disclaimer {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 16px;
+      font-size: 12px;
+      color: #4a5578;
+      line-height: 1.7;
+      text-align: left;
+    }
+
+    @media (max-width: 480px) {
+      .wx-grid { grid-template-columns: 1fr 1fr; }
+      .airport-code { font-size: 36px; }
+      .flight-meta { gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="route-label">Weather Briefing</div>
+    <div class="route-display">
+      <div class="airport-code">KSBA</div>
+      <div class="route-arrow">✈</div>
+      <div class="airport-code">KUDD</div>
+    </div>
+    <div style="font-size:14px;color:#9da8c5;margin-bottom:16px;">Santa Barbara → Bermuda Dunes (Palm Springs)</div>
+    <div class="flight-meta">
+      <div class="meta-item">
+        <span class="meta-label">Date</span>
+        <span class="meta-value">Sat, Apr 11, 2026</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Depart</span>
+        <span class="meta-value">11:00 AM PDT</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Est. Flight</span>
+        <span class="meta-value">~1h 10m</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Distance</span>
+        <span class="meta-value">~175 nm</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Go/No-Go Banner -->
+  <div class="gng-banner gng-caution">
+    <div class="gng-icon">⚠️</div>
+    <div class="gng-content">
+      <div class="gng-status">Caution — Conditional Go</div>
+      <div class="gng-summary">
+        KSBA is forecasting low overcast (OVC015) at departure time with improving conditions later.
+        Winds at KPSP/KUDD area are gusty (15–26 kt, PM pickup). Route is clear of convective SIGMETs.
+        VFR cruise likely viable above the marine layer. Plan an IFR departure, verify conditions before taxi.
+      </div>
+    </div>
+  </div>
+
+  <!-- Departure Card -->
+  <div class="card">
+    <div class="card-title">🛫 Departure — KSBA Santa Barbara Muni</div>
+
+    <div class="alert alert-warn">
+      <span>⚠️</span>
+      <span><strong>TAF Caution:</strong> Marine layer overcast arriving early morning — OVC015 by 0800Z (1:00 AM PDT). By 11:00 AM PDT (1900Z) TAF shows BKN015 OVC025 with 18 kt winds. Ceiling ~1,500 ft AGL.</span>
+    </div>
+
+    <div class="wx-grid">
+      <div class="wx-item">
+        <div class="wx-item-label">Ceiling (TAF @ Dep)</div>
+        <div class="wx-item-value">~1,500 ft</div>
+        <div class="wx-item-sub">BKN015 OVC025 (FM 1600Z)</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-item-label">Visibility</div>
+        <div class="wx-item-value">P6SM</div>
+        <div class="wx-item-sub">Greater than 6 SM</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-item-label">Wind</div>
+        <div class="wx-item-value">18 kt</div>
+        <div class="wx-item-sub">180° @ 11AM PDT (TAF)</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-item-label">Temp / Dewpt</div>
+        <div class="wx-item-value">17°C / 13°C</div>
+        <div class="wx-item-sub">Latest METAR 0053Z</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-item-label">Altimeter</div>
+        <div class="wx-item-value">29.93</div>
+        <div class="wx-item-sub">KSBA METAR</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-item-label">Tower</div>
+        <div class="wx-item-value">Towered</div>
+        <div class="wx-item-sub">119.7 / ATIS 132.65</div>
+      </div>
+    </div>
+
+    <div class="alert alert-info">
+      <span>ℹ️</span>
+      <span><strong>Runways:</strong> 07/25 (6,052 × 150 ft) · 15L/33R (4,180 × 75 ft) · 15R/33L (4,184 × 100 ft) · Surface: Asphalt · Elev: 4 ft MSL</span>
+    </div>
+
+    <div class="badge-row">
+      <span class="badge badge-mvfr">MVFR Expected at Dep</span>
+      <span class="badge badge-warn">IFR Departure Recommended</span>
+      <span class="badge badge-ok">Vis P6SM</span>
+    </div>
+
+    <div class="metar-raw">METAR KSBA 110053Z 24005KT 10SM FEW080 17/13 A2993 RMK AO2 SLP135 T01720128 $
+TAF KSBA 102331Z 1100/1124 15008KT P6SM BKN080 FM110300 27008KT P6SM SCT010 BKN025 FM110800 VRB03KT P6SM OVC015 FM111600 18008KT P6SM BKN015 OVC025 FM112000 21012KT P6SM OVC025 PROB30 1120/1124 -RA OVC020</div>
+  </div>
+
+  <!-- En Route Card -->
+  <div class="card">
+    <div class="card-title">✈️ En Route — KSBA → KUDD (~175 nm SE)</div>
+
+    <div class="alert alert-ok">
+      <span>✅</span>
+      <span><strong>No SIGMETs on route.</strong> All active convective SIGMETs are over the Midwest, Great Plains, Pacific NW, and UT/AZ — well clear of your SoCal corridor.</span>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-phase">Climb — KSBA departure</div>
+        <div class="timeline-detail">Expect marine layer tops ~2,000–3,000 ft. IMC likely in climb through overcast. Clear on top by ~3,500 ft. File IFR or be prepared for IMC in departure corridor.</div>
+        <div class="timeline-winds">SBA 3,000 ft winds: ~190°/06 kt · 6,000 ft: ~190°/15 kt +4°C</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-phase">Cruise — VFR/IFR Transition (~8,000–12,000 ft)</div>
+        <div class="timeline-detail">East of the coastal mountains, marine layer gives way to clear skies. Desert basin (Coachella Valley) typically CAVU by midday. Light to moderate turbulence possible in mountain wave near San Bernardino/San Gorgonio Pass corridor.</div>
+        <div class="timeline-winds">9,000 ft: ~230°/18 kt 0°C · 12,000 ft: ~233°/27 kt -4°C</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-phase">Descent — Coachella Valley</div>
+        <div class="timeline-detail">Gusty surface winds expected in Palm Springs area — San Gorgonio Pass wind tunnel effect. KPSP reporting 200°/15G26 kt at 0053Z. Winds may increase further by midday. Runway 10/28 at KUDD aligned 116° magnetic — crosswind component assessment required.</div>
+        <div class="timeline-winds">KPSP surface: 200°/15G26 kt · Desert floor clear, CLR</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot dest"></div>
+        <div class="timeline-phase">Arrival — KUDD Bermuda Dunes</div>
+        <div class="timeline-detail">Non-towered airport. UNICOM frequency check recommended. Single runway 10/28 (5,002 × 70 ft, asphalt), elev 22 ft MSL. Be alert for traffic pattern conflicts — Bermuda Dunes is a popular GA field near Palm Springs.</div>
+      </div>
+    </div>
+
+    <div class="alert alert-warn" style="margin-top:16px;">
+      <span>💨</span>
+      <span><strong>Wind Shear / Turbulence:</strong> LAS-area PIREPs show light chop at FL060 and LGT-MOD turbulence at FL160 with light rime icing overnight. By 11AM PDT, desert heating may enhance turbulence in descent. Stay above 8,000 ft through the mountain pass if possible.</span>
+    </div>
+  </div>
+
+  <!-- Destination Card -->
+  <div class="card">
+    <div class="card-title">🛬 Destination — KUDD Bermuda Dunes (Palm Springs)</div>
+
+    <div class="wx-grid">
+      <div class="wx-item">
+        <div class="wx-item-label">Sky</div>
+        <div class="wx-item-value">CLR</div>
+        <div class="wx-item-sub">KPSP area 0053Z</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-item-label">Visibility</div>
+        <div class="wx-item-value">10 SM</div>
+        <div class="wx-item-sub">CAVU conditions</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-item-label">Wind</div>
+        <div class="wx-item-value">15G26 kt</div>
+        <div class="wx-item-sub">200° gusting (KPSP)</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-item-label">Temp</div>
+        <div class="wx-item-value">28°C / 5°C</div>
+        <div class="wx-item-sub">Warm desert (KPSP 0053Z)</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-item-label">Altimeter</div>
+        <div class="wx-item-value">29.80</div>
+        <div class="wx-item-sub">KPSP METAR</div>
+      </div>
+      <div class="wx-item">
+        <div class="wx-item-label">Tower</div>
+        <div class="wx-item-value">Non-Towered</div>
+        <div class="wx-item-sub">KUDD UNICOM</div>
+      </div>
+    </div>
+
+    <div class="alert alert-warn">
+      <span>💨</span>
+      <span><strong>Gusty winds advisory:</strong> Palm Springs area is notorious for San Gorgonio Pass venturi winds, especially late morning through afternoon. Expect gusts 20–30 kt on the surface. Runway 10/28 (116° mag) — compute crosswind component. TAF for KPSP shows 21015G30 kt through 0200Z (7PM PDT tonight).</span>
+    </div>
+
+    <div class="badge-row">
+      <span class="badge badge-vfr">VFR / CAVU</span>
+      <span class="badge badge-warn">Gusty Winds — 15G26+ kt</span>
+      <span class="badge badge-info">Non-Towered</span>
+      <span class="badge badge-caution">Crosswind Check Required</span>
+    </div>
+
+    <div class="metar-raw">METAR KPSP 110053Z 20015G26KT 10SM CLR 28/05 A2980 RMK AO2 PK WND 19027/2355 SLP089 T02830050
+TAF KPSP 102326Z 1100/1124 21015G30KT P6SM FEW200 FM110200 34011G21KT P6SM SCT200 FM110900 33009KT P6SM SCT150 FM112100 33015G25KT P6SM SCT150</div>
+  </div>
+
+  <!-- Passenger Experience -->
+  <div class="card">
+    <div class="card-title">🧳 Passenger Experience</div>
+    <div style="font-size:13px;color:#6b7cb5;margin-bottom:8px;">Overall comfort rating</div>
+    <div class="comfort-rating">
+      <div class="comfort-dot filled"></div>
+      <div class="comfort-dot filled"></div>
+      <div class="comfort-dot filled"></div>
+      <div class="comfort-dot half"></div>
+      <div class="comfort-dot"></div>
+    </div>
+    <div style="font-size:12px;color:#6b7cb5;margin-bottom:16px;">3 / 5 — Moderate. Smooth cruise, bumpy departure & landing.</div>
+
+    <ul class="phase-list">
+      <li>
+        <span class="phase-emoji">🌫️</span>
+        <span><strong>Takeoff & Climb:</strong> Expect to fly through clouds shortly after liftoff — the marine layer overcast sits around 1,500 ft. It'll be grey and bumpy for a couple of minutes, then you'll pop out on top into sunshine. Brief and normal for a coastal departure.</span>
+      </li>
+      <li>
+        <span class="phase-emoji">☀️</span>
+        <span><strong>Cruise:</strong> Once past the coastal mountains you'll have blue skies and smooth air. The desert panorama from above is spectacular — San Bernardino Mountains, Coachella Valley, and the Salton Sea visible to the south. Light chop possible crossing through the mountain ridges.</span>
+      </li>
+      <li>
+        <span class="phase-emoji">💨</span>
+        <span><strong>Descent & Landing:</strong> The Palm Springs area will be sunny and warm (~85°F on the ground) but expect a turbulent descent and gusty crosswind landing. The San Gorgonio Pass funnels wind through the valley — bumps are normal. The pilot will handle it, but grab something to hold!</span>
+      </li>
+      <li>
+        <span class="phase-emoji">🌡️</span>
+        <span><strong>At the Ramp:</strong> Hot desert day — 80s°F. Bring sunglasses. Ground crew exposure to strong, gusty surface winds when deplaning.</span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Alerts Summary -->
+  <div class="card">
+    <div class="card-title">🚨 Key Alerts</div>
+    <div class="alert alert-warn">
+      <span>⚠️</span>
+      <span><strong>Marine Layer at KSBA:</strong> OVC015 expected 11AM PDT. IFR departure likely. File IFR or verify cloud tops with FSS/dispatch.</span>
+    </div>
+    <div class="alert alert-warn">
+      <span>💨</span>
+      <span><strong>Gusty Winds at KUDD/KPSP:</strong> 15–27 kt gusts, potentially increasing through the day. San Gorgonio Pass wind enhancement. Crosswind component assessment essential.</span>
+    </div>
+    <div class="alert alert-ok">
+      <span>✅</span>
+      <span><strong>No convective SIGMETs on route.</strong> All active storm activity is well east of California.</span>
+    </div>
+    <div class="alert alert-ok">
+      <span>✅</span>
+      <span><strong>Destination clear:</strong> KUDD/KPSP area CAVU — excellent visibility and blue skies for arrival.</span>
+    </div>
+    <div class="alert alert-info">
+      <span>📋</span>
+      <span><strong>NOTAMs:</strong> Always check via ForeFlight or 1800wxbrief.com for KUDD NOTAMs — this briefing does not include NOTAM data.</span>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div>Data sourced from <a href="https://aviationweather.gov">aviationweather.gov</a> · Valid at time of generation</div>
+    <div>Generated: Fri Apr 10, 2026, 18:53 PDT</div>
+    <div class="disclaimer">
+      <strong>Disclaimer:</strong> This briefing is for informational purposes only and is not a substitute for a full FAA-standard preflight weather briefing.
+      Pilots are responsible for verifying all weather data, NOTAMs, TFRs, and airspace information through official sources (1800wxbrief.com, ForeFlight, Garmin Pilot, etc.)
+      before flight. Aviation weather can change rapidly. Verify conditions immediately prior to departure.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
