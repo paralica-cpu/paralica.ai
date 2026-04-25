@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flight Weather Briefing · KCRQ → KSBA</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0f1e;
+      color: #e8eaf0;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+    .container { max-width: 680px; margin: 0 auto; }
+
+    .header {
+      text-align: center;
+      padding: 40px 24px 32px;
+      background: linear-gradient(135deg, #0d1b2a 0%, #1a2744 100%);
+      border-radius: 20px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .header .route { font-size: 36px; font-weight: 700; letter-spacing: -1px; color: #ffffff; margin-bottom: 8px; }
+    .header .route span { color: #4f9eff; }
+    .header .meta { font-size: 14px; color: #8892a4; margin-top: 10px; line-height: 1.8; }
+    .header .meta strong { color: #c0c8d8; }
+
+    .go-banner {
+      border-radius: 14px; padding: 18px 24px; margin-bottom: 20px;
+      display: flex; align-items: center; gap: 16px;
+      font-size: 18px; font-weight: 700; letter-spacing: 0.5px;
+    }
+    .go-banner.nogo { background: linear-gradient(135deg, #2d0d0d, #4a1a1a); border: 1px solid #7a2a2a; color: #f87171; }
+    .go-banner .icon { font-size: 28px; }
+    .go-banner .detail { font-size: 13px; font-weight: 400; color: #c4a8a8; margin-top: 4px; line-height: 1.5; }
+
+    .card { background: #111827; border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 22px 24px; margin-bottom: 16px; }
+    .card-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #4f9eff; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+    .airport-name { font-size: 22px; font-weight: 700; color: #ffffff; margin-bottom: 4px; }
+    .airport-sub { font-size: 12px; color: #6b7a94; margin-bottom: 16px; }
+
+    .wx-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
+    .wx-cell { background: #0d1525; border-radius: 10px; padding: 12px 14px; }
+    .wx-cell .label { font-size: 10px; color: #5a6a84; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .wx-cell .value { font-size: 18px; font-weight: 600; color: #e8eaf0; }
+    .wx-cell .value.warn { color: #fbbf24; }
+    .wx-cell .value.bad { color: #f87171; }
+    .wx-cell .unit { font-size: 11px; color: #6b7a94; }
+
+    .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-right: 5px; margin-bottom: 4px; }
+    .badge.vfr { background: #0d3320; color: #4ade80; border: 1px solid #2a7a45; }
+    .badge.mvfr { background: #1a1a2e; color: #a0a0ff; border: 1px solid #4040a0; }
+    .badge.ifr { background: #2d1010; color: #f87171; border: 1px solid #7a2a2a; }
+    .badge.caution { background: #2b1f0d; color: #fbbf24; border: 1px solid #b07a20; }
+    .badge.info { background: #0d1a2e; color: #8ab4f8; border: 1px solid #1e3a6e; }
+    .badge.night { background: #1a0d2e; color: #c0a0ff; border: 1px solid #5a3a90; }
+
+    .taf-row { display: flex; gap: 12px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #1a2230; }
+    .taf-row:last-child { border-bottom: none; }
+    .taf-time { font-size: 11px; color: #4f9eff; font-weight: 600; white-space: nowrap; min-width: 90px; padding-top: 2px; }
+    .taf-desc { font-size: 13px; color: #c0c8d8; line-height: 1.5; }
+    .taf-desc .active { color: #4ade80; font-weight: 600; }
+    .taf-desc .concern { color: #fbbf24; font-weight: 600; }
+    .taf-desc .warn { color: #f87171; font-weight: 600; }
+
+    .segment { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid #1a2230; align-items: flex-start; }
+    .segment:last-child { border-bottom: none; }
+    .segment-icon { font-size: 20px; min-width: 30px; text-align: center; padding-top: 2px; }
+    .segment-label { font-size: 11px; color: #4f9eff; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .segment-text { font-size: 13px; color: #c0c8d8; line-height: 1.6; }
+
+    .comfort-bar { display: flex; gap: 5px; margin: 8px 0; }
+    .comfort-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .comfort-dot.on { background: #f87171; }
+    .comfort-dot.off { background: #1e2a3e; }
+
+    .alt-box { background: #0d2b1a; border: 1px solid #2a7a45; border-radius: 10px; padding: 14px 16px; font-size: 13px; color: #4ade80; line-height: 1.6; margin-bottom: 12px; }
+    .notam-box { background: #1a1a0d; border: 1px solid #3a3a20; border-radius: 10px; padding: 12px 14px; font-size: 12px; color: #a0a060; line-height: 1.6; }
+    .divider { height: 1px; background: linear-gradient(90deg, transparent, #2a3a50, transparent); margin: 8px 0; }
+
+    .footer { text-align: center; padding: 24px; color: #3a4a60; font-size: 11px; line-height: 1.8; }
+    .footer strong { color: #4a6080; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="route">KCRQ <span>→</span> KSBA</div>
+    <div style="font-size: 15px; color: #8892a4; margin-top: 4px;">Carlsbad → Santa Barbara · Night Return</div>
+    <div class="meta">
+      <strong>Departure:</strong> Sat Apr 25, 2026 · 19:00 PDT (02:00Z Sun)<br>
+      <strong>Route:</strong> Coastal NW, ~70 nm · ETE ~30–45 min<br>
+      <strong>Arrives:</strong> ~19:45–20:00 PDT (darkness at ~20:00 PDT)<br>
+      <strong>Briefing generated:</strong> 251547Z
+    </div>
+  </div>
+
+  <!-- Go/No-Go -->
+  <div class="go-banner nogo">
+    <div class="icon">❌</div>
+    <div>
+      <div>NO-GO FOR VFR · IFR ONLY WITH CAUTION</div>
+      <div class="detail">
+        Rain showers at KCRQ at departure time, BKN025 ceiling, 6SM. Night flight into marginal MVFR conditions along the coast. IFR-equipped and current: proceed with caution, conditions manageable but not comfortable. VFR-only or not night-current: do not go — wait for Sunday morning.
+      </div>
+    </div>
+  </div>
+
+  <!-- Adverse Conditions -->
+  <div class="card">
+    <div class="card-title">⚡ Adverse Conditions</div>
+    <span class="badge ifr">Rain showers at KCRQ departure</span>
+    <span class="badge night">Night departure — darkness by 8pm</span>
+    <span class="badge caution">BKN025 at KCRQ (2,500 ft ceiling)</span>
+    <span class="badge caution">Light rain at KSBA arrival</span>
+    <span class="badge info">No SIGMETs on route</span>
+    <div class="divider" style="margin-top:10px;"></div>
+    <div style="font-size: 12px; color: #6b7a94; margin-top: 10px; line-height: 1.7;">
+      The frontal system that was threatening KSBA this afternoon has moved through and is now sitting on top of the coastal corridor. Conditions are MVFR to IFR at both airports. This is a dark, rainy night flight along the coast — doable for a current IFR pilot but not a flight to take lightly.
+    </div>
+  </div>
+
+  <!-- Departure -->
+  <div class="card">
+    <div class="card-title">🛫 Departure — KCRQ</div>
+    <div class="airport-name">McClellan-Palomar Airport</div>
+    <div class="airport-sub">Towered (118.6) · ATIS 120.15 · Elev 100 ft · Rwy 06/24 (4897×150 ft) · Night ops</div>
+
+    <div style="font-size: 11px; color: #4f6080; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Forecast at 7pm PDT (0200Z)</div>
+    <div class="wx-grid">
+      <div class="wx-cell">
+        <div class="label">Winds</div>
+        <div class="value warn">230° / 10<span class="unit"> kt</span></div>
+      </div>
+      <div class="wx-cell">
+        <div class="label">Visibility</div>
+        <div class="value warn">6<span class="unit"> SM</span></div>
+        <div class="unit">-SHRA reducing vis</div>
+      </div>
+      <div class="wx-cell">
+        <div class="label">Ceiling</div>
+        <div class="value bad">BKN025</div>
+        <div class="unit">2,500 ft — MVFR</div>
+      </div>
+      <div class="wx-cell">
+        <div class="label">Precip</div>
+        <div class="value bad">-SHRA</div>
+        <div class="unit">light rain showers</div>
+      </div>
+    </div>
+
+    <span class="badge ifr">MVFR/IFR at departure</span>
+    <span class="badge night">Night ops</span>
+    <span class="badge caution">A29.92 (current — recheck ATIS)</span>
+
+    <div style="font-size: 11px; color: #4f6080; text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 8px;">TAF KCRQ — Evening Progression</div>
+    <div class="taf-row">
+      <div class="taf-time">2pm–6pm PDT<br><span style="color:#5a6a84; font-size:10px;">2100–0100Z</span></div>
+      <div class="taf-desc"><span class="concern">24013G20KT P6SM -RA BKN035</span> — Light rain, gusts to 20 kt, BKN035</div>
+    </div>
+    <div class="taf-row">
+      <div class="taf-time" style="color:#f87171;">7pm Dep ❌<br><span style="color:#7a2a2a; font-size:10px;">0100–0500Z</span></div>
+      <div class="taf-desc"><span class="warn">23010KT 6SM -SHRA BKN025 BKN035</span> — Rain showers, ceiling 2,500 ft, vis 6SM. Climb-out in rain, through 2,500 ft broken layer. IFR departure procedure required.<br>NWS confirms: Rain Showers Likely all evening (17:00–23:00 PDT)</div>
+    </div>
+  </div>
+
+  <!-- En Route -->
+  <div class="card">
+    <div class="card-title">✈️ En Route — KCRQ → KSBA (~70 nm NW, coastal, night)</div>
+
+    <div style="margin-bottom: 14px;">
+      <span class="badge night">Night coastal flight</span>
+      <span class="badge caution">Marine layer / frontal clouds throughout</span>
+      <span class="badge info">Light winds above layer</span>
+    </div>
+
+    <div style="font-size: 13px; color: #c0c8d8; line-height: 1.7; margin-bottom: 12px;">
+      Coastal route in the dark with an active frontal system. Expect to be in and out of clouds along the coast. Winds aloft light (230° @ 6–14 kt from earlier data) — not a turbulence concern. The main risk is spatial disorientation flying in and out of rain clouds at night over water with limited visual reference. Fly the instruments.
+    </div>
+
+    <div style="font-size: 12px; color: #6b7a94; line-height: 1.6;">
+      No PIREPs available for this evening yet. Earlier today: OVC020 tops 3,000 ft SBA area, OVC018-025 coastal. Conditions expected similar or slightly improved after frontal passage.
+    </div>
+  </div>
+
+  <!-- Destination -->
+  <div class="card">
+    <div class="card-title">🛬 Destination — KSBA</div>
+    <div class="airport-name">Santa Barbara Municipal</div>
+    <div class="airport-sub">Towered (119.7) · ATIS 132.65 · Elev 4 ft · Rwy 07/25 (6052×150 ft)</div>
+
+    <div style="font-size: 11px; color: #4f6080; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Forecast at ~7:45pm PDT (ETA, 0245Z)</div>
+    <div class="wx-grid">
+      <div class="wx-cell">
+        <div class="label">Winds</div>
+        <div class="value">270° / 12<span class="unit"> kt</span></div>
+        <div class="unit">Rwy 25 — headwind ✓</div>
+      </div>
+      <div class="wx-cell">
+        <div class="label">Visibility</div>
+        <div class="value">6<span class="unit"> SM</span></div>
+        <div class="unit">-RA reducing vis</div>
+      </div>
+      <div class="wx-cell">
+        <div class="label">Ceiling</div>
+        <div class="value warn">OVC050</div>
+        <div class="unit">5,000 ft — MVFR</div>
+      </div>
+      <div class="wx-cell">
+        <div class="label">Precip</div>
+        <div class="value warn">-RA</div>
+        <div class="unit">light rain</div>
+      </div>
+    </div>
+
+    <span class="badge mvfr">MVFR — OVC050</span>
+    <span class="badge info">Better than KCRQ</span>
+    <span class="badge caution">6SM -RA, altimeter recheck</span>
+
+    <div style="font-size: 11px; color: #4f6080; text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 8px;">TAF KSBA — Evening</div>
+    <div class="taf-row">
+      <div class="taf-time">2pm–6pm PDT<br><span style="color:#5a6a84; font-size:10px;">2100–0100Z</span></div>
+      <div class="taf-desc">25015G22KT P6SM SCT250 — afternoon clearing window (the good part of the day)</div>
+    </div>
+    <div class="taf-row">
+      <div class="taf-time" style="color:#fbbf24;">ETA ~7:45pm ⚠️<br><span style="color:#b07a20; font-size:10px;">0100Z+</span></div>
+      <div class="taf-desc"><span class="concern">27012KT 6SM -RA OVC050</span> — Light rain, overcast 5,000 ft. MVFR but workable ceiling for IFR. Runway 25 winds nearly direct — 270° @ 12 kt = right down the nose. Straightforward approach.<br><span style="color:#6b7a94;">NWS: Chance Light Rain, 10–15 mph W · no convective activity</span></div>
+    </div>
+    <div class="taf-row">
+      <div class="taf-time">Late night<br><span style="color:#5a6a84; font-size:10px;">0600Z+</span></div>
+      <div class="taf-desc">27006KT P6SM OVC050 → gradual clearing. Conditions improve overnight.</div>
+    </div>
+
+    <div class="alt-box" style="margin-top: 12px;">
+      ✅ <strong>Silver lining:</strong> KSBA's 5,000 ft OVC ceiling is well above minimums and the runway is 6,052 ft wide and long. If you shoot the approach, you have plenty of room. This is the easier half of the flight.
+    </div>
+  </div>
+
+  <!-- Passenger Experience -->
+  <div class="card">
+    <div class="card-title">🎒 Passenger Experience</div>
+
+    <div style="margin-bottom: 6px; font-size: 12px; color: #6b7a94;">Overall comfort</div>
+    <div class="comfort-bar">
+      <div class="comfort-dot on"></div>
+      <div class="comfort-dot on"></div>
+      <div class="comfort-dot off"></div>
+      <div class="comfort-dot off"></div>
+      <div class="comfort-dot off"></div>
+    </div>
+    <div style="font-size: 11px; color: #f87171; margin-bottom: 16px;">2/5 — Dark, wet, instrument conditions throughout</div>
+
+    <div class="segment">
+      <div class="segment-icon">🌧️</div>
+      <div>
+        <div class="segment-label">Departure · KCRQ</div>
+        <div class="segment-text">Rain at the airport, dark sky, 2,500 ft ceiling. You'll enter clouds shortly after liftoff. No visual reference over the ocean at night. Fly the instruments from rotation. Not the kind of departure where you ease into it — it's heads-down from the start.</div>
+      </div>
+    </div>
+
+    <div class="segment">
+      <div class="segment-icon">🌑</div>
+      <div>
+        <div class="segment-label">Cruise · Night coastal</div>
+        <div class="segment-text">Dark water, rain on the windscreen, clouds. Light winds — no turbulence concern — but zero outside visual reference. Short flight, ~30 min. If above the layer, clear smooth air but pitch black. If in IMC, full IFR the whole way.</div>
+      </div>
+    </div>
+
+    <div class="segment">
+      <div class="segment-icon">🛬</div>
+      <div>
+        <div class="segment-label">Arrival · KSBA</div>
+        <div class="segment-text">OVC050 (5,000 ft) is a comfortable ceiling for an IFR approach — you'll break out well above minimums. Light rain, 6SM vis. Winds 270° @ 12 kt = textbook Rwy 25 headwind. Big runway, familiar airport. This is the easier part.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommendation -->
+  <div class="card">
+    <div class="card-title">📋 Recommendation & Alternates</div>
+
+    <div style="font-size: 13px; color: #c0c8d8; line-height: 1.8; margin-bottom: 14px;">
+      🌙 <strong style="color:#f87171;">Honest assessment:</strong> This is a legal IFR flight but not an enjoyable one. Dark, rainy, coastal, in IMC for much of the route. The risk isn't any single item — it's the combination of night + rain + limited visual reference over water + marginal ceilings at departure.<br><br>
+      ✅ <strong style="color:#4ade80;">If you go:</strong> File IFR. Get a full ATIS at KCRQ before engine start — if ceiling drops below 1,500 ft or vis below 3SM, reconsider. Have KSAN as an alternate (20nm south, often better conditions). KSBA arrival is workable.<br><br>
+      ⏰ <strong style="color:#fbbf24;">Better option:</strong> Stay the night in Carlsbad and depart Sunday morning. TAF shows improvement after midnight, and Sunday is forecast sunny with light winds. Safe, easy, comfortable flight.
+    </div>
+
+    <div class="notam-box">
+      ⚠️ Check KCRQ and KSBA NOTAMs on your EFB before departure. KSBA METAR sensor flagged ($) — verify ceiling on ATIS 132.65. KCRQ ATIS 120.15.<br><br>
+      Alternate: <strong>KSAN (San Diego International)</strong> — 20nm south of KCRQ, major airport with full ILS and services if KCRQ goes below minimums.
+    </div>
+  </div>
+
+  <div class="footer">
+    <strong>Data sourced from:</strong> aviationweather.gov (FAA/NOAA) · api.weather.gov (NWS)<br>
+    TAFs / METARs valid as of <strong>251453–251534Z · Apr 25, 2026</strong><br>
+    NWS hourly grids: SGX (KCRQ) · LOX (KSBA)<br><br>
+    This briefing is for preflight planning only. Not a substitute for an official FAA weather briefing.<br>
+    Always verify with your EFB and 1800wxbrief.com before flight.<br><br>
+    Generated by Lica · aviation.paralica.ai
+  </div>
+
+</div>
+</body>
+</html>
